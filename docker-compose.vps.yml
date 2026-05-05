@@ -64,6 +64,8 @@ services:
       ZBX_SERVER_HOST: zabbix-server
       PHP_TZ: ${TZ}
       TZ: ${TZ}
+    ports:
+      - "127.0.0.1:${ZABBIX_WEB_PORT:-8088}:8080"
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/ || exit 1"]
       interval: 15s
@@ -76,6 +78,8 @@ services:
   mailhog:
     image: mailhog/mailhog:v1.0.1
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:8025:8025"
     networks:
       - monitoring
       - negociocontigo_public
@@ -216,4 +220,3 @@ networks:
   negociocontigo_public:
     external: true
     name: negociocontigo_default
-
