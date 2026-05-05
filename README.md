@@ -91,6 +91,32 @@ Accesos:
 - Contrasena: `zabbix`
 - MailHog: http://localhost:8025
 
+## Despliegue en VPS
+
+El archivo `docker-compose.vps.yml` deja los servicios internos sin puertos publicos y conecta `zabbix-web` y `mailhog` a la red externa `negociocontigo_default`, para publicarlos por Caddy con HTTPS.
+
+Accesos publicos de la demo:
+
+- Zabbix Web: https://zabbix.negociocontigo.com
+- Usuario: `Admin`
+- Contrasena: `MonitorUAO2026!`
+- MailHog: https://mailhog-zabbix.negociocontigo.com
+- Usuario MailHog: `admin`
+- Contrasena MailHog: `MailUAO2026!`
+
+En la VPS:
+
+```bash
+cd /root/proyecto7-zabbix
+docker compose -f docker-compose.vps.yml up -d --build
+ZABBIX_API_URL=http://127.0.0.1:8088/api_jsonrpc.php \
+ZABBIX_USER=Admin \
+ZABBIX_PASSWORD='MonitorUAO2026!' \
+ZABBIX_FRONTEND_URL=https://zabbix.negociocontigo.com \
+MAILHOG_URL=https://mailhog-zabbix.negociocontigo.com \
+python3 scripts/provision_zabbix.py
+```
+
 ## Comandos utiles
 
 Validar el Compose:
@@ -132,6 +158,7 @@ El script `scripts/provision_zabbix.py` crea:
 - Items de disponibilidad para HTTP, MySQL, DNS y FTP.
 - Triggers cuando un servicio no responde.
 - Configuracion basica del media type `Email` hacia MailHog.
+- Dashboard `Proyecto 7 - Monitoreo de infraestructura` con widgets de disponibilidad de hosts y problemas.
 
 Si algun paso de correo no queda activo automaticamente, configurar manualmente:
 

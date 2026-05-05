@@ -7,10 +7,11 @@ import urllib.error
 import urllib.request
 
 URL = os.environ.get("ZABBIX_API_URL", "http://localhost:8088/api_jsonrpc.php")
-USER = "Admin"
-PASSWORD = "zabbix"
+USER = os.environ.get("ZABBIX_USER", "Admin")
+PASSWORD = os.environ.get("ZABBIX_PASSWORD", "zabbix")
 GROUP_NAME = "Proyecto 7 - Infraestructura Docker"
 LINUX_TEMPLATE = "Linux by Zabbix agent"
+DASHBOARD_NAME = "Proyecto 7 - Monitoreo de infraestructura"
 
 HOSTS = [
     {
@@ -291,6 +292,70 @@ def configure_mailhog(api):
         print("Accion por defecto de problemas habilitada para enviar alertas.")
 
 
+def ensure_dashboard(api, groupid):
+    dashboards = api.call(
+        "dashboard.get",
+        {
+            "output": ["dashboardid", "name"],
+            "filter": {"name": [DASHBOARD_NAME]},
+        },
+    )
+    if dashboards:
+        print(f"Dashboard existente: {DASHBOARD_NAME}")
+        return dashboards[0]["dashboardid"]
+
+    created = api.call(
+        "dashboard.create",
+        {
+            "name": DASHBOARD_NAME,
+            "display_period": 30,
+            "auto_start": 1,
+            "private": 0,
+            "pages": [
+                {
+                    "name": "Infraestructura Docker",
+                    "widgets": [
+                        {
+                            "type": "hostavail",
+                            "name": "Disponibilidad de hosts",
+                            "x": 0,
+                            "y": 0,
+                            "width": 6,
+                            "height": 3,
+                            "view_mode": 0,
+                            "fields": [
+                                {"type": 2, "name": "groupids", "value": groupid},
+                                {"type": 0, "name": "interface_type", "value": 1},
+                                {"type": 0, "name": "layout", "value": 1},
+                                {"type": 0, "name": "rf_rate", "value": 30},
+                            ],
+                        },
+                        {
+                            "type": "problems",
+                            "name": "Alertas del proyecto",
+                            "x": 6,
+                            "y": 0,
+                            "width": 18,
+                            "height": 6,
+                            "view_mode": 0,
+                            "fields": [
+                                {"type": 2, "name": "groupids", "value": groupid},
+                                {"type": 0, "name": "show", "value": 1},
+                                {"type": 0, "name": "show_tags", "value": 1},
+                                {"type": 0, "name": "show_opdata", "value": 1},
+                                {"type": 0, "name": "show_lines", "value": 25},
+                                {"type": 0, "name": "rf_rate", "value": 30},
+                            ],
+                        },
+                    ],
+                }
+            ],
+        },
+    )
+    print(f"Dashboard creado: {DASHBOARD_NAME}")
+    return created["dashboardids"][0]
+
+
 def main():
     api = Zabbix(URL)
     wait_for_api(api)
@@ -325,10 +390,11 @@ def main():
         print(f"Host configurado: {host['host']} -> agente {host['agent_dns']}")
 
     configure_mailhog(api)
+    ensure_dashboard(api, groupid)
     print("Provisionamiento terminado.")
-    print("Usuario web Zabbix: Admin / zabbix")
-    print("Frontend: http://localhost:8088")
-    print("MailHog: http://localhost:8025")
+    print(f"Usuario web Zabbix: {USER} / {PASSWORD}")
+    print(f"Frontend: {os.environ.get('ZABBIX_FRONTEND_URL', 'http://localhost:8088')}")
+    print(f"MailHog: {os.environ.get('MAILHOG_URL', 'http://localhost:8025')}")
 
 
 if __name__ == "__main__":
