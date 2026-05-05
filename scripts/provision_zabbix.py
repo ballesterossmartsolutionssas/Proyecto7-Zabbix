@@ -123,6 +123,26 @@ def ensure_host(api, groupid, templateid, host):
     existing = api.call("host.get", {"filter": {"host": [host["host"]]}})
     if existing:
         hostid = existing[0]["hostid"]
+        interfaces = api.call(
+            "hostinterface.get",
+            {
+                "hostids": hostid,
+                "filter": {"type": 1, "main": 1},
+            },
+        )
+        if not interfaces:
+            api.call(
+                "hostinterface.create",
+                {
+                    "hostid": hostid,
+                    "type": 1,
+                    "main": 1,
+                    "useip": 0,
+                    "ip": "",
+                    "dns": host["agent_dns"],
+                    "port": "10050",
+                },
+            )
     else:
         params = {
             "host": host["host"],
