@@ -192,7 +192,7 @@ def ensure_item(api, hostid, interfaceid, name, key, value_type=3, item_type=0):
         update = {"itemid": items[0]["itemid"]}
         if str(items[0].get("type")) != str(item_type):
             update["type"] = item_type
-        if item_type == 0 and str(items[0].get("interfaceid", "")) != str(interfaceid):
+        if item_type in (0, 3) and str(items[0].get("interfaceid", "")) != str(interfaceid):
             update["interfaceid"] = interfaceid
         if len(update) > 1:
             api.call("item.update", update)
@@ -205,7 +205,7 @@ def ensure_item(api, hostid, interfaceid, name, key, value_type=3, item_type=0):
         "value_type": value_type,
         "delay": "30s",
     }
-    if item_type == 0:
+    if item_type in (0, 3):
         params["interfaceid"] = interfaceid
     created = api.call(
         "item.create",
