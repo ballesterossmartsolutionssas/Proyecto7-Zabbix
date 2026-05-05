@@ -1,0 +1,10 @@
+.env
+.env.local
+*.log
+*.tmp
+__pycache__/
+*.pyc
+zabbix-db-data/
+tmp/
+entrega-final/qa/
+entrega-final/Proyecto7_Zabbix_entrega_final.zip

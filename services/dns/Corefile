@@ -1,0 +1,19 @@
+.:53 {
+    errors
+    health
+    ready
+    log
+    forward . 1.1.1.1 8.8.8.8
+    cache 30
+}
+
+proyecto7.local:53 {
+    errors
+    log
+    hosts {
+        10.10.10.10 web.proyecto7.local
+        10.10.10.20 db.proyecto7.local
+        fallthrough
+    }
+}
+
