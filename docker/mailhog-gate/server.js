@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const http = require("http");
+const net = require("net");
 const { URL, URLSearchParams } = require("url");
 
 const PORT = Number(process.env.PORT || 8080);
@@ -266,8 +267,37 @@ function proxyToMailhog(req, res) {
   req.pipe(proxyReq);
 }
 
-http
-  .createServer((req, res) => {
+function proxyUpgradeToMailhog(req, socket, head) {
+  if (!isValidSession(req.headers.cookie)) {
+    socket.write("HTTP/1.1 303 See Other\r\nLocation: /login\r\nConnection: close\r\n\r\n");
+    socket.destroy();
+    return;
+  }
+
+  const targetSocket = net.connect(Number(TARGET.port || 80), TARGET.hostname, () => {
+    const headers = { ...req.headers, host: TARGET.host };
+    delete headers.cookie;
+
+    const requestLines = [`${req.method} ${req.url || "/"} HTTP/${req.httpVersion}`];
+    for (const [name, value] of Object.entries(headers)) {
+      if (Array.isArray(value)) {
+        for (const item of value) requestLines.push(`${name}: ${item}`);
+      } else if (value !== undefined) {
+        requestLines.push(`${name}: ${value}`);
+      }
+    }
+    targetSocket.write(`${requestLines.join("\r\n")}\r\n\r\n`);
+    if (head?.length) targetSocket.write(head);
+    socket.pipe(targetSocket).pipe(socket);
+  });
+
+  targetSocket.on("error", () => {
+    socket.write("HTTP/1.1 502 Bad Gateway\r\nConnection: close\r\n\r\n");
+    socket.destroy();
+  });
+}
+
+const server = http.createServer((req, res) => {
     if (req.url === "/healthz") {
       res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8" });
       res.end("ok");
@@ -295,7 +325,10 @@ http
     }
 
     proxyToMailhog(req, res);
-  })
-  .listen(PORT, "0.0.0.0", () => {
-    console.log(`MailHog gate listening on ${PORT}, proxying ${TARGET.href}`);
   });
+
+server.on("upgrade", proxyUpgradeToMailhog);
+
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`MailHog gate listening on ${PORT}, proxying ${TARGET.href}`);
+});
