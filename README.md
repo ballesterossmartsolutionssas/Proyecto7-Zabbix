@@ -104,6 +104,8 @@ Accesos publicos de la demo:
 - Usuario MailHog: `admin`
 - Contrasena MailHog: `MailUAO2026!`
 
+MailHog se publica en la VPS por medio del servicio `mailhog-gate`, que muestra una pantalla de login propia y luego reenvia el trafico al contenedor interno `mailhog:8025`.
+
 En la VPS:
 
 ```bash
