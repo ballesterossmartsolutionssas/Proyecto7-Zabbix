@@ -109,6 +109,15 @@ Accesos publicos de la demo:
 
 MailHog se publica en la VPS por medio del servicio `mailhog-gate`, que muestra una pantalla de login propia y luego reenvia el trafico al contenedor interno `mailhog:8025`.
 
+Canal de correo real agregado:
+
+- Alias remitente: `alertas-zabbix@negociocontigo.com`
+- Buzon SMTP: `notificaciones@negociocontigo.com`
+- Media type Zabbix: `Email Hostinger - Proyecto 7`
+- Destino configurado: `notificaciones@negociocontigo.com`
+
+Este canal no reemplaza MailHog. Zabbix queda enviando la misma alerta al laboratorio MailHog y al correo real del dominio para demostrar escalamiento externo.
+
 Backend del servicio web:
 
 - Frontend publico: `GET /`

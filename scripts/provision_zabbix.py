@@ -267,22 +267,36 @@ def configure_mailhog(api):
         },
     )
     if users:
+        existing_medias = []
+        for user_media in users[0].get("medias", []):
+            if str(user_media.get("mediatypeid")) == str(media["mediatypeid"]):
+                continue
+            existing_medias.append(
+                {
+                    "mediatypeid": user_media["mediatypeid"],
+                    "sendto": user_media.get("sendto", []),
+                    "active": int(user_media.get("active", 0)),
+                    "severity": int(user_media.get("severity", 63)),
+                    "period": user_media.get("period", "1-7,00:00-24:00"),
+                }
+            )
+        existing_medias.append(
+            {
+                "mediatypeid": media["mediatypeid"],
+                "sendto": ["admin@proyecto7.local"],
+                "active": 0,
+                "severity": 63,
+                "period": "1-7,00:00-24:00",
+            }
+        )
         api.call(
             "user.update",
             {
                 "userid": users[0]["userid"],
-                "medias": [
-                    {
-                        "mediatypeid": media["mediatypeid"],
-                        "sendto": ["admin@proyecto7.local"],
-                        "active": 0,
-                        "severity": 63,
-                        "period": "1-7,00:00-24:00",
-                    }
-                ],
+                "medias": existing_medias,
             },
         )
-        print("Usuario Admin configurado con media admin@proyecto7.local.")
+        print("Usuario Admin configurado con media MailHog sin eliminar otros canales.")
     actions = api.call(
         "action.get",
         {"output": ["actionid", "name", "status"], "filter": {"name": ["Report problems to Zabbix administrators"]}},
