@@ -32,6 +32,8 @@ scenarios:
           url: "/api/summary"
       - get:
           url: "/api/hosts"
+      - get:
+          url: "/metrics"
       - think: 1
 
   - name: "Telemetria sintetica"
@@ -58,3 +60,5 @@ scenarios:
           url: "/api/load/cpu?ms=80"
       - get:
           url: "/api/load/memory?kb=128"
+      - get:
+          url: "/api/summary"

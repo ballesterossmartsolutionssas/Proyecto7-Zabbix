@@ -18,6 +18,8 @@ scenarios:
           url: "/health"
       - get:
           url: "/api/summary"
+      - get:
+          url: "/metrics"
       - post:
           url: "/api/telemetry"
           json:

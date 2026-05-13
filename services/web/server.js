@@ -11,7 +11,9 @@ const maxBodyBytes = 256 * 1024;
 
 const state = {
   requests: {},
+  statusCodes: {},
   telemetry: [],
+  loadRuns: [],
   syntheticEvents: [
     {
       type: "problem",
@@ -71,6 +73,7 @@ function increment(route) {
 }
 
 function send(res, status, body, headers = {}) {
+  state.statusCodes[status] = (state.statusCodes[status] || 0) + 1;
   res.writeHead(status, {
     "Cache-Control": "no-store",
     "X-Content-Type-Options": "nosniff",
@@ -173,12 +176,61 @@ function memoryPayload(sizeKb) {
   return { sizeKb: boundedKb, sample: payload.slice(0, 80), bytes: Buffer.byteLength(payload) };
 }
 
+function recordLoadRun(type, result) {
+  const run = {
+    id: crypto.randomUUID(),
+    type,
+    createdAt: new Date().toISOString(),
+    ...result,
+  };
+  state.loadRuns.push(run);
+  if (state.loadRuns.length > 200) state.loadRuns.shift();
+  return run;
+}
+
+function latestLoadRun() {
+  return state.loadRuns[state.loadRuns.length - 1] || null;
+}
+
+function metricsText() {
+  const data = summary();
+  const lines = [
+    "# HELP proyecto7_uptime_seconds Tiempo activo del servicio web.",
+    "# TYPE proyecto7_uptime_seconds gauge",
+    `proyecto7_uptime_seconds ${data.uptimeSeconds}`,
+    "# HELP proyecto7_hosts_monitored Hosts del inventario monitoreado.",
+    "# TYPE proyecto7_hosts_monitored gauge",
+    `proyecto7_hosts_monitored ${hosts.length}`,
+    "# HELP proyecto7_telemetry_samples_total Muestras de telemetria recibidas por el backend.",
+    "# TYPE proyecto7_telemetry_samples_total counter",
+    `proyecto7_telemetry_samples_total ${state.telemetry.length}`,
+    "# HELP proyecto7_load_runs_total Cargas sinteticas ejecutadas.",
+    "# TYPE proyecto7_load_runs_total counter",
+    `proyecto7_load_runs_total ${state.loadRuns.length}`,
+    "# HELP proyecto7_last_load_elapsed_ms Duracion de la ultima carga sintetica.",
+    "# TYPE proyecto7_last_load_elapsed_ms gauge",
+    `proyecto7_last_load_elapsed_ms ${data.lastLoad?.elapsedMs || 0}`,
+    "# HELP proyecto7_memory_rss_mb Memoria RSS del proceso Node.",
+    "# TYPE proyecto7_memory_rss_mb gauge",
+    `proyecto7_memory_rss_mb ${data.runtime.rssMb}`,
+  ];
+
+  for (const [route, count] of Object.entries(state.requests)) {
+    lines.push(`proyecto7_requests_total{route="${route.replaceAll('"', '\\"')}"} ${count}`);
+  }
+  for (const [status, count] of Object.entries(state.statusCodes)) {
+    lines.push(`proyecto7_http_responses_total{status="${status}"} ${count}`);
+  }
+
+  return `${lines.join("\n")}\n`;
+}
+
 function summary() {
   const memory = process.memoryUsage();
   const uptimeSeconds = Math.round((Date.now() - startedAt) / 1000);
   return {
     app: "Proyecto 7 Web Service",
-    version: "1.1.0",
+    version: "1.2.0",
     environment: process.env.NODE_ENV || "development",
     status: "operativo",
     uptimeSeconds,
@@ -186,7 +238,10 @@ function summary() {
     hostsMonitored: hosts.length,
     telemetrySamples: state.telemetry.length,
     recentTelemetry: state.telemetry.slice(-5).reverse(),
+    loadRuns: state.loadRuns.length,
+    lastLoad: latestLoadRun(),
     requests: state.requests,
+    statusCodes: state.statusCodes,
     runtime: {
       node: process.version,
       rssMb: Math.round(memory.rss / 1024 / 1024),
@@ -211,6 +266,11 @@ async function handleApi(req, res, url) {
 
   if (pathname === "/api/summary") {
     json(res, 200, summary());
+    return;
+  }
+
+  if (pathname === "/metrics") {
+    send(res, 200, metricsText(), { "Content-Type": "text/plain; charset=utf-8" });
     return;
   }
 
@@ -260,17 +320,21 @@ async function handleApi(req, res, url) {
   }
 
   if (pathname === "/api/load/cpu") {
+    const result = runCpuWork(url.searchParams.get("ms"));
     json(res, 200, {
       endpoint: "cpu",
-      result: runCpuWork(url.searchParams.get("ms")),
+      result,
+      recorded: recordLoadRun("cpu", { elapsedMs: result.elapsedMs, rounds: result.rounds }),
     });
     return;
   }
 
   if (pathname === "/api/load/memory") {
+    const result = memoryPayload(url.searchParams.get("kb"));
     json(res, 200, {
       endpoint: "memory",
-      result: memoryPayload(url.searchParams.get("kb")),
+      result,
+      recorded: recordLoadRun("memory", { elapsedMs: 0, sizeKb: result.sizeKb, bytes: result.bytes }),
     });
     return;
   }
@@ -278,10 +342,17 @@ async function handleApi(req, res, url) {
   if (pathname === "/api/load/mixed") {
     const cpu = runCpuWork(url.searchParams.get("ms") || 35);
     const payload = memoryPayload(url.searchParams.get("kb") || 32);
+    const recorded = recordLoadRun("mixed", {
+      elapsedMs: cpu.elapsedMs,
+      rounds: cpu.rounds,
+      sizeKb: payload.sizeKb,
+      bytes: payload.bytes,
+    });
     json(res, 200, {
       endpoint: "mixed",
       cpu,
       payload,
+      recorded,
       hosts: hosts.map((host) => ({ id: host.id, service: host.service, check: host.check })),
     });
     return;
@@ -294,7 +365,7 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
   const pathname = decodeURIComponent(url.pathname);
 
-  if (pathname === "/health" || pathname.startsWith("/api/")) {
+  if (pathname === "/health" || pathname === "/metrics" || pathname.startsWith("/api/")) {
     await handleApi(req, res, url);
     return;
   }

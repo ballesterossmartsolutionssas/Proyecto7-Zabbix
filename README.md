@@ -128,6 +128,7 @@ Backend del servicio web:
 - Reporte agregado: `GET /api/report`
 - Telemetria sintetica: `POST /api/telemetry`
 - Carga controlada: `GET /api/load/cpu`, `GET /api/load/memory`, `GET /api/load/mixed`
+- Exporter de metricas: `GET /metrics`
 
 En la VPS:
 
@@ -242,8 +243,20 @@ La prueba cubre:
 - Consulta de `/health`, `/api/summary`, `/api/hosts` y `/api/report`.
 - Envio de muestras a `/api/telemetry`.
 - Carga controlada sobre `/api/load/mixed`, `/api/load/cpu` y `/api/load/memory`.
+- Lectura del exporter `/metrics`.
 
 Durante la sustentacion se puede correr Artillery mientras se observa en Zabbix el comportamiento del host `web-host` y las metricas historicas.
+
+## Demo automatizada
+
+En la VPS se puede ejecutar una demo integral con:
+
+```bash
+cd /root/proyecto7-zabbix
+bash scripts/demo-full.sh
+```
+
+El script valida endpoints publicos, muestra metricas, ejecuta Artillery smoke si `npx` esta disponible, genera carga sintetica, simula caida de `web-service`, consulta MailHog y lista las ultimas alertas de Zabbix por MailHog y SMTP real.
 
 ## Estructura
 
@@ -262,6 +275,7 @@ Proyecto7-Zabbix/
     artillery-web-service.yml
   scripts/
     provision.ps1
+    demo-full.sh
     provision_zabbix.py
     test-failure.ps1
     verify.ps1

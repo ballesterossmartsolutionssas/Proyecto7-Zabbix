@@ -778,6 +778,21 @@
             <code>GET /api/load/mixed</code>
             <span class="small">Ejecuta trabajo acotado para observar respuesta bajo estres.</span>
           </div>
+          <div class="api-box">
+            <strong>Exporter de metricas</strong>
+            <code>GET /metrics</code>
+            <span class="small">Expone contadores y gauges para integracion con Zabbix HTTP agent.</span>
+          </div>
+          <div class="api-box">
+            <strong>Reporte JSON</strong>
+            <code>GET /api/report</code>
+            <span class="small">Agrupa resumen, inventario y recomendaciones de operacion.</span>
+          </div>
+          <div class="api-box">
+            <strong>Historial de carga</strong>
+            <code>lastLoad</code>
+            <span class="small" id="last-load-label">Sin cargas registradas en este arranque.</span>
+          </div>
         </div>
         <div class="result-box" id="load-result">Listo para ejecutar una carga corta desde el navegador o con Artillery.</div>
       </section>
@@ -798,6 +813,7 @@
     const telemetryCount = document.querySelector("#telemetry-count");
     const runLoad = document.querySelector("#run-load");
     const loadResult = document.querySelector("#load-result");
+    const lastLoadLabel = document.querySelector("#last-load-label");
 
     function setStatus(kind, text) {
       statusPill.innerHTML = '<span class="dot"></span>' + text;
@@ -837,6 +853,11 @@
         hostsCount.textContent = hosts.count;
         telemetryCount.textContent = summary.telemetrySamples;
         checksLabel.textContent = hosts.hosts.map((host) => host.check).join(", ");
+        if (summary.lastLoad) {
+          lastLoadLabel.textContent = `${summary.lastLoad.type} | ${summary.lastLoad.elapsedMs} ms | ${summary.lastLoad.createdAt}`;
+        } else {
+          lastLoadLabel.textContent = "Sin cargas registradas en este arranque.";
+        }
       } catch (error) {
         loadResult.textContent = "No se pudo consultar la API del backend.";
       }
@@ -860,7 +881,7 @@
         });
         const data = await response.json();
         const sample = await telemetry.json();
-        loadResult.textContent = `CPU: ${data.cpu.elapsedMs} ms, rondas: ${data.cpu.rounds}\nPayload: ${data.payload.sizeKb} KB\nMuestra guardada: ${sample.id}`;
+        loadResult.textContent = `CPU: ${data.cpu.elapsedMs} ms, rondas: ${data.cpu.rounds}\nPayload: ${data.payload.sizeKb} KB\nRun ID: ${data.recorded.id}\nMuestra guardada: ${sample.id}`;
         await loadSummary();
       } catch (error) {
         loadResult.textContent = "Fallo la carga corta: " + error.message;

@@ -12,6 +12,7 @@ PASSWORD = os.environ.get("ZABBIX_PASSWORD", "zabbix")
 GROUP_NAME = "Proyecto 7 - Infraestructura Docker"
 LINUX_TEMPLATE = "Linux by Zabbix agent"
 DASHBOARD_NAME = "Proyecto 7 - Monitoreo de infraestructura"
+PUBLIC_WEB_HOST = "web-zabbix.negociocontigo.com"
 
 HOSTS = [
     {
@@ -180,11 +181,12 @@ def get_main_agent_interface(api, hostid):
     return interfaces[0]["interfaceid"]
 
 
-def ensure_item(api, hostid, interfaceid, name, key, value_type=3, item_type=0):
+def ensure_item(api, hostid, interfaceid, name, key, value_type=3, item_type=0, extra_params=None):
+    extra_params = extra_params or {}
     items = api.call(
         "item.get",
         {
-            "output": ["itemid", "type", "interfaceid"],
+            "output": ["itemid", "type", "interfaceid", "value_type", "url"],
             "hostids": hostid,
             "filter": {"key_": [key]},
         },
@@ -193,8 +195,13 @@ def ensure_item(api, hostid, interfaceid, name, key, value_type=3, item_type=0):
         update = {"itemid": items[0]["itemid"]}
         if str(items[0].get("type")) != str(item_type):
             update["type"] = item_type
+        if str(items[0].get("value_type")) != str(value_type):
+            update["value_type"] = value_type
         if item_type in (0, 3) and str(items[0].get("interfaceid", "")) != str(interfaceid):
             update["interfaceid"] = interfaceid
+        for param_key, param_value in extra_params.items():
+            if str(items[0].get(param_key, "")) != str(param_value):
+                update[param_key] = param_value
         if len(update) > 1:
             api.call("item.update", update)
         return items[0]["itemid"]
@@ -206,6 +213,7 @@ def ensure_item(api, hostid, interfaceid, name, key, value_type=3, item_type=0):
         "value_type": value_type,
         "delay": "30s",
     }
+    params.update(extra_params)
     if item_type in (0, 3):
         params["interfaceid"] = interfaceid
     created = api.call(
@@ -370,6 +378,43 @@ def ensure_dashboard(api, groupid):
     return created["dashboardids"][0]
 
 
+def ensure_value_added_web_items(api, hostid, interfaceid):
+    latency_key = f"net.tcp.service.perf[https,{PUBLIC_WEB_HOST},443]"
+    metrics_key = "proyecto7.metrics.exporter"
+    ensure_item(
+        api,
+        hostid,
+        interfaceid,
+        "Latencia HTTPS publica del portal web-zabbix",
+        latency_key,
+        value_type=0,
+        item_type=3,
+    )
+    ensure_item(
+        api,
+        hostid,
+        interfaceid,
+        "Exporter /metrics Proyecto 7",
+        metrics_key,
+        value_type=4,
+        item_type=19,
+        extra_params={"url": f"https://{PUBLIC_WEB_HOST}/metrics"},
+    )
+    ensure_trigger(
+        api,
+        "Latencia alta del portal web-zabbix",
+        f"last(/web-host/{latency_key})>1.5",
+        priority=3,
+    )
+    ensure_trigger(
+        api,
+        "Exporter /metrics sin datos",
+        f"nodata(/web-host/{metrics_key},3m)=1",
+        priority=3,
+    )
+    print("Items de valor agregado configurados para web-host: latencia HTTPS publica y exporter /metrics.")
+
+
 def main():
     api = Zabbix(URL)
     wait_for_api(api)
@@ -401,6 +446,8 @@ def main():
             f"nodata(/{host['host']}/agent.ping,5m)=1",
             priority=4,
         )
+        if host["host"] == "web-host":
+            ensure_value_added_web_items(api, hostid, interfaceid)
         print(f"Host configurado: {host['host']} -> agente {host['agent_dns']}")
 
     configure_mailhog(api)
