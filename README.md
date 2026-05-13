@@ -221,6 +221,12 @@ Ejecutar desde una maquina con Node.js:
 npx artillery run tests/artillery-web-service.yml
 ```
 
+Para una validacion rapida antes de la sustentacion:
+
+```bash
+npx artillery run tests/artillery-smoke.yml
+```
+
 La prueba cubre:
 
 - Navegacion del frontend.

@@ -1,0 +1,30 @@
+config:
+  target: "https://web-zabbix.negociocontigo.com"
+  phases:
+    - name: "Smoke test"
+      duration: 8
+      arrivalRate: 1
+  defaults:
+    headers:
+      Content-Type: "application/json"
+      User-Agent: "Proyecto7-Artillery-Smoke"
+
+scenarios:
+  - name: "Validacion rapida"
+    flow:
+      - get:
+          url: "/"
+      - get:
+          url: "/health"
+      - get:
+          url: "/api/summary"
+      - post:
+          url: "/api/telemetry"
+          json:
+            source: "artillery-smoke"
+            cpu: 50
+            memory: 45
+            disk: 35
+            message: "smoke test"
+      - get:
+          url: "/api/load/mixed?ms=20&kb=16"
