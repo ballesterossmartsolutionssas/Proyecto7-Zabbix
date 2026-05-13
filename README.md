@@ -98,6 +98,7 @@ El archivo `docker-compose.vps.yml` deja los servicios internos sin puertos publ
 Accesos publicos de la demo:
 
 - Zabbix Web: https://zabbix.negociocontigo.com
+- Servicio web monitoreado: https://web-zabbix.negociocontigo.com
 - Usuario: `Admin`
 - Contrasena: `MonitorUAO2026!`
 - MailHog: https://mailhog-zabbix.negociocontigo.com
