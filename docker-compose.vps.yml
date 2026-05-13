@@ -109,13 +109,15 @@ services:
       - negociocontigo_public
 
   web-service:
-    image: nginx:1.25-alpine
+    build:
+      context: ./services/web
+      dockerfile: Dockerfile
+    image: proyecto7-web-service:latest
     restart: unless-stopped
-    volumes:
-      - ./services/web/default.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./services/web/html:/usr/share/nginx/html:ro
+    environment:
+      NODE_ENV: production
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/ || exit 1"]
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
       interval: 10s
       timeout: 5s
       retries: 5

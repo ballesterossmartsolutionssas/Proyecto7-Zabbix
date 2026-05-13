@@ -1,0 +1,60 @@
+config:
+  target: "https://web-zabbix.negociocontigo.com"
+  phases:
+    - name: "Calentamiento"
+      duration: 30
+      arrivalRate: 2
+    - name: "Rampa controlada"
+      duration: 60
+      arrivalRate: 4
+      rampTo: 15
+    - name: "Carga sostenida"
+      duration: 90
+      arrivalRate: 15
+  defaults:
+    headers:
+      Content-Type: "application/json"
+      User-Agent: "Proyecto7-Artillery"
+  ensure:
+    thresholds:
+      - http.response_time.p95: 1200
+      - http.codes.500: 0
+
+scenarios:
+  - name: "Navegacion y API operativa"
+    weight: 55
+    flow:
+      - get:
+          url: "/"
+      - get:
+          url: "/health"
+      - get:
+          url: "/api/summary"
+      - get:
+          url: "/api/hosts"
+      - think: 1
+
+  - name: "Telemetria sintetica"
+    weight: 30
+    flow:
+      - post:
+          url: "/api/telemetry"
+          json:
+            source: "artillery"
+            cpu: 67
+            memory: 54
+            disk: 42
+            message: "muestra enviada durante prueba de carga"
+      - get:
+          url: "/api/report"
+      - think: 1
+
+  - name: "Carga controlada de backend"
+    weight: 15
+    flow:
+      - get:
+          url: "/api/load/mixed?ms=60&kb=64"
+      - get:
+          url: "/api/load/cpu?ms=80"
+      - get:
+          url: "/api/load/memory?kb=128"

@@ -413,6 +413,67 @@
       gap: 12px;
     }
 
+    .wide {
+      grid-column: 1 / -1;
+    }
+
+    .api-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .api-box {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f8fafc;
+      padding: 14px;
+      display: grid;
+      gap: 8px;
+      min-height: 128px;
+    }
+
+    .api-box strong {
+      color: var(--ink);
+      font-size: 15px;
+    }
+
+    .api-box code {
+      width: fit-content;
+    }
+
+    .load-button {
+      min-height: 40px;
+      border: 1px solid #2563eb;
+      border-radius: 6px;
+      background: #2563eb;
+      color: #ffffff;
+      padding: 0 12px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 850;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .load-button:disabled {
+      opacity: 0.65;
+      cursor: wait;
+    }
+
+    .result-box {
+      margin-top: 14px;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      background: #eff6ff;
+      color: #1e3a8a;
+      padding: 14px;
+      font-size: 13px;
+      line-height: 1.5;
+      min-height: 52px;
+      white-space: pre-wrap;
+    }
+
     .timeline-item {
       box-shadow: none;
       padding: 14px;
@@ -462,6 +523,7 @@
 
       .nav { justify-content: flex-start; }
       .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .api-grid { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 560px) {
@@ -520,7 +582,7 @@
     <section class="metrics" aria-label="Resumen del proyecto">
       <div class="metric">
         <span>Hosts monitoreados</span>
-        <strong>4</strong>
+        <strong id="hosts-count">4</strong>
       </div>
       <div class="metric">
         <span>Servicios Docker</span>
@@ -528,11 +590,11 @@
       </div>
       <div class="metric">
         <span>Checks activos</span>
-        <strong>HTTP, DB, DNS, FTP</strong>
+        <strong id="checks-label">HTTP, DB, DNS, FTP</strong>
       </div>
       <div class="metric">
-        <span>Alertas</span>
-        <strong>MailHog</strong>
+        <span>Muestras API</span>
+        <strong id="telemetry-count">0</strong>
       </div>
     </section>
 
@@ -691,6 +753,34 @@
           </article>
         </div>
       </section>
+
+      <section class="section wide">
+        <div class="section-head">
+          <div>
+            <h2>Backend y pruebas de carga</h2>
+            <p>El sitio expone API real para que Artillery genere trafico, telemetria y consumo controlado de CPU/memoria.</p>
+          </div>
+          <button class="load-button" type="button" id="run-load">Ejecutar carga corta</button>
+        </div>
+        <div class="api-grid">
+          <div class="api-box">
+            <strong>Resumen operativo</strong>
+            <code>GET /api/summary</code>
+            <span class="small">Estado de app, uptime, runtime Node, contadores y enlaces de la demo.</span>
+          </div>
+          <div class="api-box">
+            <strong>Telemetria sintetica</strong>
+            <code>POST /api/telemetry</code>
+            <span class="small">Recibe muestras simuladas de CPU, memoria y disco durante pruebas.</span>
+          </div>
+          <div class="api-box">
+            <strong>Carga controlada</strong>
+            <code>GET /api/load/mixed</code>
+            <span class="small">Ejecuta trabajo acotado para observar respuesta bajo estres.</span>
+          </div>
+        </div>
+        <div class="result-box" id="load-result">Listo para ejecutar una carga corta desde el navegador o con Artillery.</div>
+      </section>
     </main>
 
     <footer>
@@ -703,6 +793,11 @@
     const lastCheck = document.querySelector("#last-check");
     const statusPill = document.querySelector("#status-pill");
     const refresh = document.querySelector("#refresh");
+    const hostsCount = document.querySelector("#hosts-count");
+    const checksLabel = document.querySelector("#checks-label");
+    const telemetryCount = document.querySelector("#telemetry-count");
+    const runLoad = document.querySelector("#run-load");
+    const loadResult = document.querySelector("#load-result");
 
     function setStatus(kind, text) {
       statusPill.innerHTML = '<span class="dot"></span>' + text;
@@ -731,9 +826,55 @@
       }
     }
 
+    async function loadSummary() {
+      try {
+        const [summaryResponse, hostsResponse] = await Promise.all([
+          fetch("/api/summary", { cache: "no-store" }),
+          fetch("/api/hosts", { cache: "no-store" })
+        ]);
+        const summary = await summaryResponse.json();
+        const hosts = await hostsResponse.json();
+        hostsCount.textContent = hosts.count;
+        telemetryCount.textContent = summary.telemetrySamples;
+        checksLabel.textContent = hosts.hosts.map((host) => host.check).join(", ");
+      } catch (error) {
+        loadResult.textContent = "No se pudo consultar la API del backend.";
+      }
+    }
+
+    async function executeShortLoad() {
+      runLoad.disabled = true;
+      loadResult.textContent = "Ejecutando carga corta...";
+      try {
+        const response = await fetch("/api/load/mixed?ms=90&kb=96", { cache: "no-store" });
+        const telemetry = await fetch("/api/telemetry", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            source: "frontend-demo",
+            cpu: 72,
+            memory: 58,
+            disk: 41,
+            message: "Carga corta ejecutada desde el portal"
+          })
+        });
+        const data = await response.json();
+        const sample = await telemetry.json();
+        loadResult.textContent = `CPU: ${data.cpu.elapsedMs} ms, rondas: ${data.cpu.rounds}\nPayload: ${data.payload.sizeKb} KB\nMuestra guardada: ${sample.id}`;
+        await loadSummary();
+      } catch (error) {
+        loadResult.textContent = "Fallo la carga corta: " + error.message;
+      } finally {
+        runLoad.disabled = false;
+      }
+    }
+
     refresh.addEventListener("click", checkHealth);
+    runLoad.addEventListener("click", executeShortLoad);
     checkHealth();
+    loadSummary();
     setInterval(checkHealth, 30000);
+    setInterval(loadSummary, 30000);
   </script>
 </body>
 </html>

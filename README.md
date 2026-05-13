@@ -11,6 +11,8 @@ Integrantes:
 
 Implementar una plataforma de monitoreo de infraestructura con Zabbix 6.x, Docker y Docker Compose. La solucion monitorea disponibilidad, servicios, metricas basicas y alertas de una red de contenedores.
 
+Como valor agregado, el host `web-service` no es solo una pagina estatica: es una aplicacion Node.js con frontend, backend, endpoints JSON, recepcion de telemetria sintetica y rutas de carga controlada para ejecutar pruebas con Artillery.
+
 ## Arquitectura
 
 ```mermaid
@@ -20,7 +22,7 @@ flowchart LR
         ZS[Zabbix Server]
         ZW[Zabbix Web]
         MH[MailHog]
-        WEB[web-service Nginx]
+    WEB[web-service Node.js]
         DB[db-service MariaDB]
         DNS[dns-service CoreDNS]
         FTP[ftp-service VSFTPD]
@@ -48,7 +50,7 @@ flowchart LR
 
 | Host en Zabbix | Servicio asociado | Check principal |
 |---|---|---|
-| `web-host` | `web-service` Nginx | HTTP puerto 80 |
+| `web-host` | `web-service` Node.js | HTTP puerto 80 |
 | `db-host` | `db-service` MariaDB | TCP puerto 3306 |
 | `dns-host` | `dns-service` CoreDNS | TCP puerto 53 |
 | `ftp-host` | `ftp-service` VSFTPD | FTP puerto 21 |
@@ -106,6 +108,17 @@ Accesos publicos de la demo:
 - Contrasena MailHog: `MailUAO2026!`
 
 MailHog se publica en la VPS por medio del servicio `mailhog-gate`, que muestra una pantalla de login propia y luego reenvia el trafico al contenedor interno `mailhog:8025`.
+
+Backend del servicio web:
+
+- Frontend publico: `GET /`
+- Salud para Zabbix: `GET /health`
+- Resumen operativo: `GET /api/summary`
+- Inventario JSON: `GET /api/hosts`
+- Eventos de prueba: `GET /api/events`
+- Reporte agregado: `GET /api/report`
+- Telemetria sintetica: `POST /api/telemetry`
+- Carga controlada: `GET /api/load/cpu`, `GET /api/load/memory`, `GET /api/load/mixed`
 
 En la VPS:
 
@@ -198,6 +211,25 @@ Abrir MailHog en `http://localhost:8025` y verificar que llegue la notificacion 
 
 En `Monitoring > Latest data`, abrir la grafica de un item y evidenciar datos en el tiempo.
 
+## Pruebas de carga con Artillery
+
+El repo incluye `tests/artillery-web-service.yml` para generar trafico real contra el sitio publico y sus endpoints de backend.
+
+Ejecutar desde una maquina con Node.js:
+
+```bash
+npx artillery run tests/artillery-web-service.yml
+```
+
+La prueba cubre:
+
+- Navegacion del frontend.
+- Consulta de `/health`, `/api/summary`, `/api/hosts` y `/api/report`.
+- Envio de muestras a `/api/telemetry`.
+- Carga controlada sobre `/api/load/mixed`, `/api/load/cpu` y `/api/load/memory`.
+
+Durante la sustentacion se puede correr Artillery mientras se observa en Zabbix el comportamiento del host `web-host` y las metricas historicas.
+
 ## Estructura
 
 ```text
@@ -206,7 +238,13 @@ Proyecto7-Zabbix/
   .env
   services/
     web/
+      Dockerfile
+      server.js
+      package.json
+      html/
     dns/
+  tests/
+    artillery-web-service.yml
   scripts/
     provision.ps1
     provision_zabbix.py
