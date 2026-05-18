@@ -507,6 +507,77 @@
       gap: 10px;
     }
 
+    .load-lab {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .live-board {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f8fafc;
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .sparkline {
+      width: 100%;
+      height: 148px;
+      border: 1px solid #dbe4ef;
+      border-radius: 8px;
+      background: #ffffff;
+      display: block;
+    }
+
+    .live-stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .live-stat {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 12px;
+      min-height: 78px;
+    }
+
+    .live-stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .live-stat strong {
+      display: block;
+      margin-top: 8px;
+      color: var(--ink);
+      font-size: 22px;
+    }
+
+    .command-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .command-line {
+      border: 1px solid #dbe4ef;
+      border-radius: 8px;
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 12px;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.45;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
     .incident {
       border: 1px solid var(--line);
       border-radius: 8px;
@@ -588,6 +659,8 @@
       .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .api-grid { grid-template-columns: 1fr; }
       .db-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .load-lab { grid-template-columns: 1fr; }
+      .live-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     @media (max-width: 560px) {
@@ -595,6 +668,7 @@
       .hero-main, .live-panel, .section { padding: 18px; }
       .metrics { grid-template-columns: 1fr; }
       .db-strip { grid-template-columns: 1fr; }
+      .live-stats { grid-template-columns: 1fr; }
       .service { grid-template-columns: auto 1fr; }
       .incident { grid-template-columns: 1fr; }
       .tag { grid-column: 2; justify-self: start; }
@@ -903,6 +977,49 @@
         </div>
         <div class="result-box" id="load-result">Listo para ejecutar una carga corta desde el navegador o con Artillery.</div>
       </section>
+
+      <section class="section wide">
+        <div class="section-head">
+          <div>
+            <h2>Load Lab en vivo</h2>
+            <p>Mientras corre Artillery en la VPS, este panel se actualiza cada 2 segundos para mostrar trafico, SLO, DB y cargas.</p>
+          </div>
+          <button class="load-button" type="button" id="run-burst">Burst desde navegador</button>
+        </div>
+        <div class="load-lab">
+          <div class="live-board">
+            <canvas class="sparkline" id="traffic-chart" width="900" height="260"></canvas>
+            <div class="live-stats">
+              <div class="live-stat">
+                <span>Requests runtime</span>
+                <strong id="live-requests">--</strong>
+              </div>
+              <div class="live-stat">
+                <span>Load runs</span>
+                <strong id="live-loads">--</strong>
+              </div>
+              <div class="live-stat">
+                <span>Telemetria DB</span>
+                <strong id="live-telemetry">--</strong>
+              </div>
+              <div class="live-stat">
+                <span>SLO</span>
+                <strong id="live-slo">--</strong>
+              </div>
+            </div>
+          </div>
+          <div class="live-board">
+            <h3>Comandos para la demo</h3>
+            <div class="command-list">
+              <div class="command-line">cd /root/proyecto7-zabbix</div>
+              <div class="command-line">artillery run tests/artillery-live-demo.yml</div>
+              <div class="command-line">bash scripts/live-artillery-demo.sh</div>
+              <div class="command-line">bash scripts/evidence-pack.sh</div>
+            </div>
+            <div class="result-box" id="live-result">Esperando datos en vivo...</div>
+          </div>
+        </div>
+      </section>
     </main>
 
     <footer>
@@ -929,6 +1046,14 @@
     const runLoad = document.querySelector("#run-load");
     const loadResult = document.querySelector("#load-result");
     const lastLoadLabel = document.querySelector("#last-load-label");
+    const runBurst = document.querySelector("#run-burst");
+    const liveRequests = document.querySelector("#live-requests");
+    const liveLoads = document.querySelector("#live-loads");
+    const liveTelemetry = document.querySelector("#live-telemetry");
+    const liveSlo = document.querySelector("#live-slo");
+    const liveResult = document.querySelector("#live-result");
+    const trafficChart = document.querySelector("#traffic-chart");
+    const trafficHistory = [];
 
     function setStatus(kind, text) {
       statusPill.innerHTML = '<span class="dot"></span>' + text;
@@ -1067,15 +1192,86 @@
       }
     }
 
+    function drawTraffic() {
+      const ctx = trafficChart.getContext("2d");
+      const width = trafficChart.width;
+      const height = trafficChart.height;
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
+      ctx.strokeStyle = "#dbe4ef";
+      ctx.lineWidth = 1;
+      for (let i = 1; i < 4; i += 1) {
+        const y = (height / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+      if (trafficHistory.length < 2) return;
+      const maxValue = Math.max(...trafficHistory.map((point) => point.requests), 1);
+      ctx.strokeStyle = "#2563eb";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      trafficHistory.forEach((point, index) => {
+        const x = (width / Math.max(trafficHistory.length - 1, 1)) * index;
+        const y = height - (point.requests / maxValue) * (height - 24) - 12;
+        if (index === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.fillStyle = "#0f766e";
+      const last = trafficHistory[trafficHistory.length - 1];
+      ctx.fillText(`requests: ${last.requests}`, 16, 24);
+    }
+
+    async function loadLive() {
+      try {
+        const response = await fetch("/api/live", { cache: "no-store" });
+        const data = await response.json();
+        liveRequests.textContent = data.requestsTotal;
+        liveLoads.textContent = data.loadRuns.length;
+        liveTelemetry.textContent = data.database.telemetryRows;
+        liveSlo.textContent = data.slo.availabilityPercent + "%";
+        const last = data.loadRuns[0];
+        liveResult.textContent = last
+          ? `Ultima carga: ${last.type} | ${last.elapsedMs} ms | ${last.createdAt}`
+          : "Aun no hay cargas en este arranque.";
+        trafficHistory.push({ requests: data.requestsTotal, at: data.generatedAt });
+        if (trafficHistory.length > 48) trafficHistory.shift();
+        drawTraffic();
+      } catch (error) {
+        liveResult.textContent = "No se pudo consultar /api/live.";
+      }
+    }
+
+    async function executeBurst() {
+      runBurst.disabled = true;
+      liveResult.textContent = "Ejecutando burst controlado...";
+      try {
+        const response = await fetch("/api/load/burst?n=10&ms=20&kb=24", { cache: "no-store" });
+        const data = await response.json();
+        liveResult.textContent = `Burst: ${data.burst.iterations} iteraciones | ${data.burst.elapsedMs} ms | ${data.burst.bytes} bytes`;
+        await Promise.all([loadLive(), loadSummary()]);
+      } catch (error) {
+        liveResult.textContent = "Fallo el burst: " + error.message;
+      } finally {
+        runBurst.disabled = false;
+      }
+    }
+
     refresh.addEventListener("click", checkHealth);
     runLoad.addEventListener("click", executeShortLoad);
+    runBurst.addEventListener("click", executeBurst);
     createIncident.addEventListener("click", createDemoIncident);
     checkHealth();
     loadSummary();
     loadDatabase();
+    loadLive();
     setInterval(checkHealth, 30000);
     setInterval(loadSummary, 30000);
     setInterval(loadDatabase, 30000);
+    setInterval(loadLive, 2000);
   </script>
 </body>
 </html>

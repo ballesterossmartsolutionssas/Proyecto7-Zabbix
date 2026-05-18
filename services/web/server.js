@@ -301,6 +301,31 @@ function memoryPayload(sizeKb) {
   return { sizeKb: boundedKb, sample: payload.slice(0, 80), bytes: Buffer.byteLength(payload) };
 }
 
+function runBurst(iterations, cpuMs, memoryKb) {
+  const total = Math.min(Math.max(Number(iterations) || 8, 1), 40);
+  const boundedCpuMs = Math.min(Math.max(Number(cpuMs) || 15, 5), 60);
+  const boundedMemoryKb = Math.min(Math.max(Number(memoryKb) || 16, 1), 256);
+  const started = Date.now();
+  let rounds = 0;
+  let bytes = 0;
+
+  for (let index = 0; index < total; index += 1) {
+    const cpu = runCpuWork(boundedCpuMs);
+    const memory = memoryPayload(boundedMemoryKb);
+    rounds += cpu.rounds;
+    bytes += memory.bytes;
+  }
+
+  return {
+    iterations: total,
+    cpuMs: boundedCpuMs,
+    memoryKb: boundedMemoryKb,
+    elapsedMs: Date.now() - started,
+    rounds,
+    bytes,
+  };
+}
+
 function recordLoadRun(type, result) {
   const run = {
     id: crypto.randomUUID(),
@@ -351,6 +376,9 @@ function metricsText() {
     "# HELP proyecto7_last_load_elapsed_ms Duracion de la ultima carga sintetica.",
     "# TYPE proyecto7_last_load_elapsed_ms gauge",
     `proyecto7_last_load_elapsed_ms ${data.lastLoad?.elapsedMs || 0}`,
+    "# HELP proyecto7_last_load_iterations Iteraciones de la ultima carga sintetica tipo burst.",
+    "# TYPE proyecto7_last_load_iterations gauge",
+    `proyecto7_last_load_iterations ${data.lastLoad?.iterations || 0}`,
     "# HELP proyecto7_memory_rss_mb Memoria RSS del proceso Node.",
     "# TYPE proyecto7_memory_rss_mb gauge",
     `proyecto7_memory_rss_mb ${data.runtime.rssMb}`,
@@ -395,7 +423,7 @@ function summary() {
   const uptimeSeconds = Math.round((Date.now() - startedAt) / 1000);
   return {
     app: "Proyecto 7 Web Service",
-    version: "1.4.0",
+    version: "1.5.0",
     environment: process.env.NODE_ENV || "development",
     status: "operativo",
     uptimeSeconds,
@@ -425,6 +453,30 @@ function summary() {
       zabbix: "https://zabbix.negociocontigo.com",
       mailhog: "https://mailhog-zabbix.negociocontigo.com/login",
       repository: "https://github.com/ballesterossmartsolutionssas/Proyecto7-Zabbix",
+    },
+  };
+}
+
+function liveSnapshot() {
+  const data = summary();
+  return {
+    generatedAt: new Date().toISOString(),
+    version: data.version,
+    status: data.status,
+    uptimeSeconds: data.uptimeSeconds,
+    requestsTotal: Object.values(state.requests).reduce((sum, count) => sum + count, 0),
+    statusCodes: state.statusCodes,
+    requests: state.requests,
+    slo: data.slo,
+    database: data.database,
+    loadRuns: state.loadRuns.slice(-12).reverse(),
+    recentTelemetry: state.telemetry.slice(-8).reverse(),
+    commands: {
+      smoke: "artillery run tests/artillery-smoke.yml",
+      live: "artillery run tests/artillery-live-demo.yml",
+      full: "artillery run tests/artillery-web-service.yml",
+      evidence: "bash scripts/evidence-pack.sh",
+      failure: "docker compose -f docker-compose.vps.yml stop web-service; sleep 90; docker compose -f docker-compose.vps.yml start web-service",
     },
   };
 }
@@ -489,6 +541,12 @@ async function handleApi(req, res, url) {
       requestCounters: state.requests,
       statusCounters: state.statusCodes,
     });
+    return;
+  }
+
+  if (pathname === "/api/live") {
+    await refreshDbStats();
+    json(res, 200, liveSnapshot());
     return;
   }
 
@@ -637,6 +695,23 @@ async function handleApi(req, res, url) {
       payload,
       recorded,
       hosts: hosts.map((host) => ({ id: host.id, service: host.service, check: host.check })),
+    });
+    return;
+  }
+
+  if (pathname === "/api/load/burst") {
+    const burst = runBurst(url.searchParams.get("n"), url.searchParams.get("ms"), url.searchParams.get("kb"));
+    const recorded = recordLoadRun("burst", {
+      elapsedMs: burst.elapsedMs,
+      rounds: burst.rounds,
+      sizeKb: burst.memoryKb * burst.iterations,
+      bytes: burst.bytes,
+      iterations: burst.iterations,
+    });
+    json(res, 200, {
+      endpoint: "burst",
+      burst,
+      recorded,
     });
     return;
   }

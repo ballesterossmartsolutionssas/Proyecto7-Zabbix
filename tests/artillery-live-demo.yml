@@ -1,0 +1,64 @@
+config:
+  target: "https://web-zabbix.negociocontigo.com"
+  phases:
+    - name: "Inicio visible"
+      duration: 20
+      arrivalRate: 2
+    - name: "Rampa en vivo"
+      duration: 35
+      arrivalRate: 4
+      rampTo: 18
+    - name: "Carga sostenida observable"
+      duration: 35
+      arrivalRate: 18
+    - name: "Enfriamiento"
+      duration: 20
+      arrivalRate: 5
+  defaults:
+    headers:
+      Content-Type: "application/json"
+      User-Agent: "Proyecto7-Artillery-Live"
+  ensure:
+    thresholds:
+      - http.response_time.p95: 1500
+      - http.codes.500: 0
+
+scenarios:
+  - name: "Panel en vivo y metricas"
+    weight: 35
+    flow:
+      - get:
+          url: "/"
+      - get:
+          url: "/api/live"
+      - get:
+          url: "/metrics"
+      - get:
+          url: "/api/slo"
+      - think: 1
+
+  - name: "Telemetria y DB"
+    weight: 35
+    flow:
+      - post:
+          url: "/api/telemetry"
+          json:
+            source: "artillery-live"
+            cpu: 74
+            memory: 62
+            disk: 48
+            message: "muestra generada durante demo en vivo"
+      - get:
+          url: "/api/db/status"
+      - get:
+          url: "/api/incidents"
+
+  - name: "Carga backend visible"
+    weight: 30
+    flow:
+      - get:
+          url: "/api/load/burst?n=6&ms=18&kb=24"
+      - get:
+          url: "/api/load/mixed?ms=45&kb=64"
+      - get:
+          url: "/api/live"

@@ -28,7 +28,8 @@ Tiempo maximo: 20 minutos.
    - Mostrar dashboard o graficas.
    - Abrir `https://web-zabbix.negociocontigo.com` y crear un incidente demo.
    - Mostrar `/api/db/status`, `/api/slo`, `/api/incidents` y `/metrics`.
-   - Ejecutar Artillery smoke para generar trafico, telemetria y escrituras en MariaDB.
+   - Ejecutar `artillery run tests/artillery-live-demo.yml` con el panel `Load Lab en vivo` abierto.
+   - Mostrar como suben requests, telemetria, cargas y SLO durante la ejecucion.
    - Mostrar el web scenario `Proyecto 7 - recorrido publico` en Zabbix.
    - Detener un servicio con `test-failure.ps1`.
    - Ver problema en Zabbix.

@@ -129,9 +129,10 @@ Backend del servicio web:
 - Estado de base de datos: `GET /api/db/status`
 - SLO de laboratorio: `GET /api/slo`
 - Analitica operativa: `GET /api/analytics`
+- Snapshot vivo para demo: `GET /api/live`
 - Incidentes persistentes: `GET /api/incidents`, `POST /api/incidents`
 - Telemetria sintetica: `POST /api/telemetry`
-- Carga controlada: `GET /api/load/cpu`, `GET /api/load/memory`, `GET /api/load/mixed`
+- Carga controlada: `GET /api/load/cpu`, `GET /api/load/memory`, `GET /api/load/mixed`, `GET /api/load/burst`
 - Exporter de metricas: `GET /metrics`
 
 El backend crea automaticamente tablas en `db-service`:
@@ -253,13 +254,26 @@ Para una validacion rapida antes de la sustentacion:
 npx artillery run tests/artillery-smoke.yml
 ```
 
+Para una demo en vivo, abrir el portal y correr en la VPS:
+
+```bash
+cd /root/proyecto7-zabbix
+artillery run tests/artillery-live-demo.yml
+```
+
+Tambien se puede ejecutar el flujo con snapshots antes/despues:
+
+```bash
+bash scripts/live-artillery-demo.sh
+```
+
 La prueba cubre:
 
 - Navegacion del frontend.
-- Consulta de `/health`, `/api/summary`, `/api/hosts`, `/api/report`, `/api/db/status`, `/api/slo`, `/api/incidents` y `/api/analytics`.
+- Consulta de `/health`, `/api/summary`, `/api/hosts`, `/api/report`, `/api/db/status`, `/api/slo`, `/api/live`, `/api/incidents` y `/api/analytics`.
 - Envio de muestras a `/api/telemetry`.
 - Escritura de incidentes en MariaDB con `POST /api/incidents`.
-- Carga controlada sobre `/api/load/mixed`, `/api/load/cpu` y `/api/load/memory`.
+- Carga controlada sobre `/api/load/mixed`, `/api/load/cpu`, `/api/load/memory` y `/api/load/burst`.
 - Lectura del exporter `/metrics`.
 
 Durante la sustentacion se puede correr Artillery mientras se observa en Zabbix el comportamiento del host `web-host` y las metricas historicas.
@@ -308,6 +322,7 @@ Proyecto7-Zabbix/
     provision.ps1
     demo-full.sh
     evidence-pack.sh
+    live-artillery-demo.sh
     provision_zabbix.py
     test-failure.ps1
     verify.ps1

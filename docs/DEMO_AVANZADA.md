@@ -31,6 +31,19 @@ Esta demo muestra valor agregado sobre el requerimiento base: monitoreo sintetic
    npx artillery run tests/artillery-smoke.yml
    ```
 
+   Para mostrar carga en vivo con el panel del portal abierto:
+
+   ```bash
+   cd /root/proyecto7-zabbix
+   artillery run tests/artillery-live-demo.yml
+   ```
+
+   Para guardar snapshots antes y despues:
+
+   ```bash
+   bash scripts/live-artillery-demo.sh
+   ```
+
 5. En Zabbix mostrar:
 
    - Host `web-host`.
@@ -57,4 +70,5 @@ El proyecto no se limita a revisar puertos abiertos. La plataforma monitorea una
 - `slo.json`: disponibilidad calculada del proceso.
 - `metrics.prom`: metricas estilo Prometheus.
 - `artillery-smoke.txt`: resultado de prueba de carga.
+- `artillery-live.txt`: resultado de demo en vivo si se ejecuta `scripts/live-artillery-demo.sh`.
 - `zabbix-items.json`: ultimos valores recibidos por Zabbix.
