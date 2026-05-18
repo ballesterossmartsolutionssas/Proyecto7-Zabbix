@@ -261,6 +261,12 @@ cd /root/proyecto7-zabbix
 artillery run tests/artillery-live-demo.yml
 ```
 
+Para una saturacion controlada opcional:
+
+```bash
+artillery run tests/artillery-stress-demo.yml
+```
+
 Tambien se puede ejecutar el flujo con snapshots antes/despues:
 
 ```bash

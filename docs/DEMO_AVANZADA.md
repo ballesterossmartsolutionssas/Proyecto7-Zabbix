@@ -38,6 +38,12 @@ Esta demo muestra valor agregado sobre el requerimiento base: monitoreo sintetic
    artillery run tests/artillery-live-demo.yml
    ```
 
+   Si se quiere evidenciar saturacion y degradacion, ejecutar el escenario opcional:
+
+   ```bash
+   artillery run tests/artillery-stress-demo.yml
+   ```
+
    Para guardar snapshots antes y despues:
 
    ```bash

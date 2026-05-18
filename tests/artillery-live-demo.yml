@@ -5,15 +5,15 @@ config:
       duration: 20
       arrivalRate: 2
     - name: "Rampa en vivo"
-      duration: 35
-      arrivalRate: 4
-      rampTo: 18
+      duration: 30
+      arrivalRate: 3
+      rampTo: 8
     - name: "Carga sostenida observable"
-      duration: 35
-      arrivalRate: 18
+      duration: 30
+      arrivalRate: 8
     - name: "Enfriamiento"
       duration: 20
-      arrivalRate: 5
+      arrivalRate: 3
   defaults:
     headers:
       Content-Type: "application/json"
@@ -57,8 +57,8 @@ scenarios:
     weight: 30
     flow:
       - get:
-          url: "/api/load/burst?n=6&ms=18&kb=24"
+          url: "/api/load/burst?n=3&ms=10&kb=16"
       - get:
-          url: "/api/load/mixed?ms=45&kb=64"
+          url: "/api/load/mixed?ms=25&kb=32"
       - get:
           url: "/api/live"

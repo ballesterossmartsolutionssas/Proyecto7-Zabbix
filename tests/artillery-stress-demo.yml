@@ -1,0 +1,33 @@
+config:
+  target: "https://web-zabbix.negociocontigo.com"
+  phases:
+    - name: "Rampa agresiva"
+      duration: 40
+      arrivalRate: 8
+      rampTo: 25
+    - name: "Saturacion controlada"
+      duration: 45
+      arrivalRate: 25
+    - name: "Recuperacion"
+      duration: 20
+      arrivalRate: 5
+  defaults:
+    headers:
+      Content-Type: "application/json"
+      User-Agent: "Proyecto7-Artillery-Stress"
+
+scenarios:
+  - name: "Stress visible"
+    flow:
+      - get:
+          url: "/api/load/burst?n=6&ms=18&kb=24"
+      - get:
+          url: "/api/live"
+      - post:
+          url: "/api/telemetry"
+          json:
+            source: "artillery-stress"
+            cpu: 88
+            memory: 74
+            disk: 57
+            message: "muestra generada durante stress controlado"
