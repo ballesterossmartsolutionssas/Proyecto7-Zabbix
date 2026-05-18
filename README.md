@@ -130,6 +130,7 @@ Backend del servicio web:
 - SLO de laboratorio: `GET /api/slo`
 - Analitica operativa: `GET /api/analytics`
 - Snapshot vivo para demo: `GET /api/live`
+- Datos para graficas: `GET /api/charts`
 - Incidentes persistentes: `GET /api/incidents`, `POST /api/incidents`
 - Telemetria sintetica: `POST /api/telemetry`
 - Carga controlada: `GET /api/load/cpu`, `GET /api/load/memory`, `GET /api/load/mixed`, `GET /api/load/burst`
@@ -276,7 +277,7 @@ bash scripts/live-artillery-demo.sh
 La prueba cubre:
 
 - Navegacion del frontend.
-- Consulta de `/health`, `/api/summary`, `/api/hosts`, `/api/report`, `/api/db/status`, `/api/slo`, `/api/live`, `/api/incidents` y `/api/analytics`.
+- Consulta de `/health`, `/api/summary`, `/api/hosts`, `/api/report`, `/api/db/status`, `/api/slo`, `/api/live`, `/api/charts`, `/api/incidents` y `/api/analytics`.
 - Envio de muestras a `/api/telemetry`.
 - Escritura de incidentes en MariaDB con `POST /api/incidents`.
 - Carga controlada sobre `/api/load/mixed`, `/api/load/cpu`, `/api/load/memory` y `/api/load/burst`.

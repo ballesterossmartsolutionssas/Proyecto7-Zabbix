@@ -578,6 +578,61 @@
       white-space: nowrap;
     }
 
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .chart-panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f8fafc;
+      padding: 16px;
+      display: grid;
+      gap: 10px;
+      min-height: 310px;
+    }
+
+    .chart-panel h3 {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 15px;
+    }
+
+    .chart-panel canvas {
+      width: 100%;
+      height: 220px;
+      border: 1px solid #dbe4ef;
+      border-radius: 8px;
+      background: #ffffff;
+      display: block;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend i {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      display: inline-block;
+    }
+
     .incident {
       border: 1px solid var(--line);
       border-radius: 8px;
@@ -661,6 +716,7 @@
       .db-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .load-lab { grid-template-columns: 1fr; }
       .live-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .charts-grid { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 560px) {
@@ -1020,6 +1076,50 @@
           </div>
         </div>
       </section>
+
+      <section class="section wide">
+        <div class="section-head">
+          <div>
+            <h2>Centro de graficas</h2>
+            <p>Vista operacional con tendencias de telemetria, cargas, rutas y SLO. Estas graficas se alimentan de MariaDB y del runtime del backend.</p>
+          </div>
+          <button class="load-button" type="button" id="refresh-charts">Actualizar graficas</button>
+        </div>
+        <div class="charts-grid">
+          <div class="chart-panel">
+            <h3>Telemetria persistida <span class="small" id="telemetry-chart-label">--</span></h3>
+            <canvas id="telemetry-chart" width="900" height="320"></canvas>
+            <div class="legend">
+              <span><i style="background:#2563eb"></i>CPU</span>
+              <span><i style="background:#0f766e"></i>Memoria</span>
+              <span><i style="background:#b7791f"></i>Disco</span>
+            </div>
+          </div>
+          <div class="chart-panel">
+            <h3>Cargas recientes <span class="small" id="load-chart-label">--</span></h3>
+            <canvas id="load-chart" width="900" height="320"></canvas>
+            <div class="legend">
+              <span><i style="background:#7c3aed"></i>Duracion ms</span>
+              <span><i style="background:#2563eb"></i>Iteraciones</span>
+            </div>
+          </div>
+          <div class="chart-panel">
+            <h3>Rutas mas golpeadas <span class="small" id="routes-chart-label">--</span></h3>
+            <canvas id="routes-chart" width="900" height="320"></canvas>
+            <div class="legend">
+              <span><i style="background:#0f766e"></i>Requests por ruta</span>
+            </div>
+          </div>
+          <div class="chart-panel">
+            <h3>SLO y respuestas <span class="small" id="slo-chart-label">--</span></h3>
+            <canvas id="slo-chart" width="900" height="320"></canvas>
+            <div class="legend">
+              <span><i style="background:#15803d"></i>Exitosas</span>
+              <span><i style="background:#b42318"></i>Fallidas</span>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
 
     <footer>
@@ -1054,6 +1154,15 @@
     const liveResult = document.querySelector("#live-result");
     const trafficChart = document.querySelector("#traffic-chart");
     const trafficHistory = [];
+    const refreshCharts = document.querySelector("#refresh-charts");
+    const telemetryChart = document.querySelector("#telemetry-chart");
+    const loadChart = document.querySelector("#load-chart");
+    const routesChart = document.querySelector("#routes-chart");
+    const sloChart = document.querySelector("#slo-chart");
+    const telemetryChartLabel = document.querySelector("#telemetry-chart-label");
+    const loadChartLabel = document.querySelector("#load-chart-label");
+    const routesChartLabel = document.querySelector("#routes-chart-label");
+    const sloChartLabel = document.querySelector("#slo-chart-label");
 
     function setStatus(kind, text) {
       statusPill.innerHTML = '<span class="dot"></span>' + text;
@@ -1225,6 +1334,142 @@
       ctx.fillText(`requests: ${last.requests}`, 16, 24);
     }
 
+    function setupCanvas(canvas) {
+      const ratio = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      const width = Math.max(Math.floor(rect.width * ratio), canvas.width);
+      const height = Math.max(Math.floor(rect.height * ratio), canvas.height);
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      return { ctx, width, height, ratio };
+    }
+
+    function clearChart(canvas, title) {
+      const { ctx, width, height } = setupCanvas(canvas);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
+      ctx.strokeStyle = "#dbe4ef";
+      ctx.lineWidth = 1;
+      for (let i = 1; i < 4; i += 1) {
+        const y = (height / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(16, y);
+        ctx.lineTo(width - 16, y);
+        ctx.stroke();
+      }
+      ctx.fillStyle = "#617086";
+      ctx.font = `${12 * (window.devicePixelRatio || 1)}px ui-sans-serif`;
+      ctx.fillText(title, 16, 22);
+      return { ctx, width, height };
+    }
+
+    function drawLineSeries(canvas, rows, series) {
+      const { ctx, width, height } = clearChart(canvas, "0-100%");
+      const pad = 34;
+      const values = rows.length ? rows : [{ cpu: 0, memory: 0, disk: 0 }];
+      series.forEach(({ key, color }) => {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        values.forEach((row, index) => {
+          const x = pad + ((width - pad * 2) / Math.max(values.length - 1, 1)) * index;
+          const y = height - pad - (Number(row[key] || 0) / 100) * (height - pad * 2);
+          if (index === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+      });
+    }
+
+    function drawBars(canvas, rows, valueKey, color, labelKey = "type") {
+      const { ctx, width, height } = clearChart(canvas, valueKey);
+      const pad = 34;
+      const values = rows.slice(-18);
+      const max = Math.max(...values.map((row) => Number(row[valueKey] || 0)), 1);
+      const barWidth = (width - pad * 2) / Math.max(values.length, 1) - 6;
+      values.forEach((row, index) => {
+        const value = Number(row[valueKey] || 0);
+        const x = pad + ((width - pad * 2) / Math.max(values.length, 1)) * index + 3;
+        const h = (value / max) * (height - pad * 2);
+        const y = height - pad - h;
+        ctx.fillStyle = color;
+        ctx.fillRect(x, y, Math.max(barWidth, 4), h);
+        ctx.fillStyle = "#617086";
+        ctx.font = `${10 * (window.devicePixelRatio || 1)}px ui-sans-serif`;
+        ctx.fillText(String(row[labelKey] || index + 1).slice(0, 8), x, height - 12);
+      });
+    }
+
+    function drawHorizontalBars(canvas, rows) {
+      const { ctx, width, height } = clearChart(canvas, "requests");
+      const pad = 28;
+      const values = rows.slice(0, 8);
+      const max = Math.max(...values.map((row) => Number(row.count || 0)), 1);
+      const rowHeight = (height - pad * 2) / Math.max(values.length, 1);
+      values.forEach((row, index) => {
+        const y = pad + rowHeight * index + 8;
+        const w = (Number(row.count || 0) / max) * (width - 220);
+        ctx.fillStyle = "#0f766e";
+        ctx.fillRect(190, y, w, Math.max(rowHeight - 14, 8));
+        ctx.fillStyle = "#253247";
+        ctx.font = `${11 * (window.devicePixelRatio || 1)}px ui-sans-serif`;
+        ctx.fillText(row.route.slice(0, 26), 16, y + 13);
+        ctx.fillText(String(row.count), 196 + w, y + 13);
+      });
+    }
+
+    function drawSloGauge(canvas, slo) {
+      const { ctx, width, height } = clearChart(canvas, "SLO");
+      const cx = width / 2;
+      const cy = height * 0.62;
+      const radius = Math.min(width, height) * 0.34;
+      const start = Math.PI;
+      const end = Math.PI * 2;
+      const value = Math.max(0, Math.min(Number(slo.availabilityRatio || 0), 1));
+      ctx.lineWidth = 22;
+      ctx.strokeStyle = "#e2e8f0";
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, start, end);
+      ctx.stroke();
+      ctx.strokeStyle = value >= 0.995 ? "#15803d" : "#b7791f";
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, start, start + Math.PI * value);
+      ctx.stroke();
+      ctx.fillStyle = "#162033";
+      ctx.font = `bold ${34 * (window.devicePixelRatio || 1)}px ui-sans-serif`;
+      ctx.textAlign = "center";
+      ctx.fillText(`${slo.availabilityPercent}%`, cx, cy - 8);
+      ctx.font = `${13 * (window.devicePixelRatio || 1)}px ui-sans-serif`;
+      ctx.fillStyle = "#617086";
+      ctx.fillText(`${slo.successfulResponses}/${slo.totalResponses} respuestas exitosas`, cx, cy + 24);
+      ctx.textAlign = "left";
+    }
+
+    async function loadCharts() {
+      try {
+        const response = await fetch("/api/charts", { cache: "no-store" });
+        const data = await response.json();
+        telemetryChartLabel.textContent = `${data.telemetry.length} muestras`;
+        loadChartLabel.textContent = `${data.loadRuns.length} cargas`;
+        routesChartLabel.textContent = `${data.routes.length} rutas`;
+        sloChartLabel.textContent = data.slo.status;
+        drawLineSeries(telemetryChart, data.telemetry, [
+          { key: "cpu", color: "#2563eb" },
+          { key: "memory", color: "#0f766e" },
+          { key: "disk", color: "#b7791f" }
+        ]);
+        drawBars(loadChart, data.loadRuns, "elapsedMs", "#7c3aed", "type");
+        drawHorizontalBars(routesChart, data.routes);
+        drawSloGauge(sloChart, data.slo);
+      } catch (error) {
+        telemetryChartLabel.textContent = "sin datos";
+      }
+    }
+
     async function loadLive() {
       try {
         const response = await fetch("/api/live", { cache: "no-store" });
@@ -1263,15 +1508,18 @@
     refresh.addEventListener("click", checkHealth);
     runLoad.addEventListener("click", executeShortLoad);
     runBurst.addEventListener("click", executeBurst);
+    refreshCharts.addEventListener("click", loadCharts);
     createIncident.addEventListener("click", createDemoIncident);
     checkHealth();
     loadSummary();
     loadDatabase();
     loadLive();
+    loadCharts();
     setInterval(checkHealth, 30000);
     setInterval(loadSummary, 30000);
     setInterval(loadDatabase, 30000);
     setInterval(loadLive, 2000);
+    setInterval(loadCharts, 10000);
   </script>
 </body>
 </html>

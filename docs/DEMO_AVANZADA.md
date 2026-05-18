@@ -16,12 +16,14 @@ Esta demo muestra valor agregado sobre el requerimiento base: monitoreo sintetic
    - Conexion MariaDB.
    - Incidentes persistidos.
    - SLO runtime.
+   - Centro de graficas con telemetria, cargas, rutas y SLO.
 
 3. Abrir endpoints verificables:
 
    ```text
    https://web-zabbix.negociocontigo.com/api/db/status
    https://web-zabbix.negociocontigo.com/api/slo
+   https://web-zabbix.negociocontigo.com/api/charts
    https://web-zabbix.negociocontigo.com/metrics
    ```
 

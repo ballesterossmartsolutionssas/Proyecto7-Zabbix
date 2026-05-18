@@ -30,6 +30,7 @@ Tiempo maximo: 20 minutos.
    - Mostrar `/api/db/status`, `/api/slo`, `/api/incidents` y `/metrics`.
    - Ejecutar `artillery run tests/artillery-live-demo.yml` con el panel `Load Lab en vivo` abierto.
    - Mostrar como suben requests, telemetria, cargas y SLO durante la ejecucion.
+   - Mostrar el `Centro de graficas` con CPU, memoria, disco, rutas y cargas recientes.
    - Mostrar el web scenario `Proyecto 7 - recorrido publico` en Zabbix.
    - Detener un servicio con `test-failure.ps1`.
    - Ver problema en Zabbix.

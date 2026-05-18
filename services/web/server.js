@@ -136,6 +136,18 @@ function publicIncident(row) {
   };
 }
 
+function publicTelemetry(row) {
+  return {
+    id: row.id,
+    receivedAt: row.received_at instanceof Date ? row.received_at.toISOString() : row.received_at,
+    source: row.source,
+    cpu: Number(row.cpu),
+    memory: Number(row.memory),
+    disk: Number(row.disk),
+    message: row.message,
+  };
+}
+
 async function queryDb(sql, params = []) {
   if (!dbPool) return null;
   try {
@@ -423,7 +435,7 @@ function summary() {
   const uptimeSeconds = Math.round((Date.now() - startedAt) / 1000);
   return {
     app: "Proyecto 7 Web Service",
-    version: "1.5.0",
+    version: "1.6.0",
     environment: process.env.NODE_ENV || "development",
     status: "operativo",
     uptimeSeconds,
@@ -454,6 +466,35 @@ function summary() {
       mailhog: "https://mailhog-zabbix.negociocontigo.com/login",
       repository: "https://github.com/ballesterossmartsolutionssas/Proyecto7-Zabbix",
     },
+  };
+}
+
+async function chartSnapshot() {
+  await refreshDbStats();
+  const telemetryRows = dbPool
+    ? await queryDb(
+        "SELECT id, received_at, source, cpu, memory, disk, message FROM telemetry_samples ORDER BY received_at DESC LIMIT 80"
+      )
+    : null;
+  const incidentRows = dbPool
+    ? await queryDb(
+        "SELECT severity, status, COUNT(*) AS count FROM incidents GROUP BY severity, status ORDER BY severity, status"
+      )
+    : null;
+
+  return {
+    generatedAt: new Date().toISOString(),
+    telemetry: (telemetryRows || []).map(publicTelemetry).reverse(),
+    incidents: incidentRows || [],
+    loadRuns: state.loadRuns.slice(-40),
+    routes: Object.entries(state.requests)
+      .map(([route, count]) => ({ route, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10),
+    statusCodes: Object.entries(state.statusCodes).map(([status, count]) => ({ status, count })),
+    slo: slo(),
+    db: state.db,
+    runtime: summary().runtime,
   };
 }
 
@@ -547,6 +588,11 @@ async function handleApi(req, res, url) {
   if (pathname === "/api/live") {
     await refreshDbStats();
     json(res, 200, liveSnapshot());
+    return;
+  }
+
+  if (pathname === "/api/charts") {
+    json(res, 200, await chartSnapshot());
     return;
   }
 

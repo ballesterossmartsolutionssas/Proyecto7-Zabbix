@@ -37,6 +37,8 @@ scenarios:
       - get:
           url: "/api/slo"
       - get:
+          url: "/api/charts"
+      - get:
           url: "/api/incidents"
       - get:
           url: "/metrics"

@@ -32,6 +32,8 @@ scenarios:
       - get:
           url: "/api/live"
       - get:
+          url: "/api/charts"
+      - get:
           url: "/metrics"
       - get:
           url: "/api/slo"
