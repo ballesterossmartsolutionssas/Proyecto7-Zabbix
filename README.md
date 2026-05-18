@@ -127,6 +127,7 @@ Backend del servicio web:
 - Eventos de prueba: `GET /api/events`
 - Reporte agregado: `GET /api/report`
 - Estado de base de datos: `GET /api/db/status`
+- SLO de laboratorio: `GET /api/slo`
 - Analitica operativa: `GET /api/analytics`
 - Incidentes persistentes: `GET /api/incidents`, `POST /api/incidents`
 - Telemetria sintetica: `POST /api/telemetry`
@@ -143,6 +144,7 @@ Zabbix tambien consulta por HTTP Agent:
 - Latencia HTTPS publica del portal `web-zabbix`.
 - Exporter `/metrics`.
 - Estado JSON de MariaDB en `/api/db/status`.
+- Escenario web sintetico `Proyecto 7 - recorrido publico` con pasos `Home`, `Health API`, `DB Status`, `SLO` y `Metrics`.
 
 En la VPS:
 
@@ -254,7 +256,7 @@ npx artillery run tests/artillery-smoke.yml
 La prueba cubre:
 
 - Navegacion del frontend.
-- Consulta de `/health`, `/api/summary`, `/api/hosts`, `/api/report`, `/api/db/status`, `/api/incidents` y `/api/analytics`.
+- Consulta de `/health`, `/api/summary`, `/api/hosts`, `/api/report`, `/api/db/status`, `/api/slo`, `/api/incidents` y `/api/analytics`.
 - Envio de muestras a `/api/telemetry`.
 - Escritura de incidentes en MariaDB con `POST /api/incidents`.
 - Carga controlada sobre `/api/load/mixed`, `/api/load/cpu` y `/api/load/memory`.
@@ -272,6 +274,19 @@ bash scripts/demo-full.sh
 ```
 
 El script valida endpoints publicos, muestra metricas, ejecuta Artillery smoke si `npx` esta disponible, genera carga sintetica, simula caida de `web-service`, consulta MailHog y lista las ultimas alertas de Zabbix por MailHog y SMTP real.
+
+## Paquete de evidencias
+
+Para generar evidencias exportables antes de sustentar:
+
+```bash
+cd /root/proyecto7-zabbix
+bash scripts/evidence-pack.sh
+```
+
+El script crea una carpeta en `entrega-final/evidencias/` con JSON de endpoints, metricas Prometheus, resultado de Artillery y ultimos valores leidos desde Zabbix.
+
+La guia de demostracion extendida esta en `docs/DEMO_AVANZADA.md`.
 
 ## Estructura
 
@@ -292,6 +307,7 @@ Proyecto7-Zabbix/
   scripts/
     provision.ps1
     demo-full.sh
+    evidence-pack.sh
     provision_zabbix.py
     test-failure.ps1
     verify.ps1

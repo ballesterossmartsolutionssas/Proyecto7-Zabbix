@@ -319,6 +319,7 @@ function latestLoadRun() {
 
 function metricsText() {
   const data = summary();
+  const objective = slo();
   const lines = [
     "# HELP proyecto7_uptime_seconds Tiempo activo del servicio web.",
     "# TYPE proyecto7_uptime_seconds gauge",
@@ -344,6 +345,9 @@ function metricsText() {
     "# HELP proyecto7_incidents_open Incidentes abiertos en la app.",
     "# TYPE proyecto7_incidents_open gauge",
     `proyecto7_incidents_open ${state.db.openIncidents}`,
+    "# HELP proyecto7_slo_availability_ratio Disponibilidad HTTP calculada desde contadores de respuesta.",
+    "# TYPE proyecto7_slo_availability_ratio gauge",
+    `proyecto7_slo_availability_ratio ${objective.availabilityRatio}`,
     "# HELP proyecto7_last_load_elapsed_ms Duracion de la ultima carga sintetica.",
     "# TYPE proyecto7_last_load_elapsed_ms gauge",
     `proyecto7_last_load_elapsed_ms ${data.lastLoad?.elapsedMs || 0}`,
@@ -362,12 +366,36 @@ function metricsText() {
   return `${lines.join("\n")}\n`;
 }
 
+function slo() {
+  const total = Object.entries(state.statusCodes).reduce((sum, [, count]) => sum + count, 0);
+  const successful = Object.entries(state.statusCodes).reduce((sum, [status, count]) => {
+    const code = Number(status);
+    return code >= 200 && code < 400 ? sum + count : sum;
+  }, 0);
+  const failed = Math.max(total - successful, 0);
+  const availabilityRatio = total > 0 ? Number((successful / total).toFixed(5)) : 1;
+  const objectiveRatio = 0.995;
+  return {
+    window: "process-runtime",
+    objectiveRatio,
+    objectivePercent: 99.5,
+    totalResponses: total,
+    successfulResponses: successful,
+    failedResponses: failed,
+    availabilityRatio,
+    availabilityPercent: Number((availabilityRatio * 100).toFixed(3)),
+    errorBudgetRemainingPercent: Number(Math.max((availabilityRatio - objectiveRatio) * 100, 0).toFixed(3)),
+    status: availabilityRatio >= objectiveRatio ? "cumple" : "riesgo",
+    note: "Calculo de laboratorio basado en los contadores del proceso actual; Zabbix conserva el historico real.",
+  };
+}
+
 function summary() {
   const memory = process.memoryUsage();
   const uptimeSeconds = Math.round((Date.now() - startedAt) / 1000);
   return {
     app: "Proyecto 7 Web Service",
-    version: "1.3.0",
+    version: "1.4.0",
     environment: process.env.NODE_ENV || "development",
     status: "operativo",
     uptimeSeconds,
@@ -385,6 +413,7 @@ function summary() {
       openIncidents: state.db.openIncidents,
       lastQueryAt: state.db.lastQueryAt,
     },
+    slo: slo(),
     requests: state.requests,
     statusCodes: state.statusCodes,
     runtime: {
@@ -442,6 +471,11 @@ async function handleApi(req, res, url) {
       lastQueryAt: state.db.lastQueryAt,
       error: state.db.error,
     });
+    return;
+  }
+
+  if (pathname === "/api/slo") {
+    json(res, 200, slo());
     return;
   }
 

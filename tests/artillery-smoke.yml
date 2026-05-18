@@ -21,6 +21,8 @@ scenarios:
       - get:
           url: "/api/db/status"
       - get:
+          url: "/api/slo"
+      - get:
           url: "/api/incidents"
       - get:
           url: "/metrics"

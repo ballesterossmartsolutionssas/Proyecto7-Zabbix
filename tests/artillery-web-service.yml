@@ -35,6 +35,8 @@ scenarios:
       - get:
           url: "/api/db/status"
       - get:
+          url: "/api/slo"
+      - get:
           url: "/api/incidents"
       - get:
           url: "/metrics"
@@ -55,6 +57,8 @@ scenarios:
           url: "/api/report"
       - get:
           url: "/api/analytics"
+      - get:
+          url: "/api/slo"
       - think: 1
 
   - name: "Carga controlada de backend"

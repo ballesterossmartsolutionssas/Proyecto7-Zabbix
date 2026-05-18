@@ -13,6 +13,7 @@ GROUP_NAME = "Proyecto 7 - Infraestructura Docker"
 LINUX_TEMPLATE = "Linux by Zabbix agent"
 DASHBOARD_NAME = "Proyecto 7 - Monitoreo de infraestructura"
 PUBLIC_WEB_HOST = "web-zabbix.negociocontigo.com"
+WEB_SCENARIO_NAME = "Proyecto 7 - recorrido publico"
 
 HOSTS = [
     {
@@ -248,6 +249,48 @@ def ensure_trigger(api, description, expression, priority=4):
     return created["triggerids"][0]
 
 
+def ensure_web_scenario(api, hostid):
+    steps = [
+        {"name": "Home", "url": f"https://{PUBLIC_WEB_HOST}/", "status_codes": "200", "no": 1},
+        {"name": "Health API", "url": f"https://{PUBLIC_WEB_HOST}/health", "status_codes": "200", "no": 2},
+        {"name": "DB Status", "url": f"https://{PUBLIC_WEB_HOST}/api/db/status", "status_codes": "200", "no": 3},
+        {"name": "SLO", "url": f"https://{PUBLIC_WEB_HOST}/api/slo", "status_codes": "200", "no": 4},
+        {"name": "Metrics", "url": f"https://{PUBLIC_WEB_HOST}/metrics", "status_codes": "200", "no": 5},
+    ]
+    params = {
+        "name": WEB_SCENARIO_NAME,
+        "hostid": hostid,
+        "delay": "30s",
+        "retries": 2,
+        "agent": "Proyecto7-Zabbix-WebScenario",
+        "steps": steps,
+    }
+    try:
+        scenarios = api.call(
+            "httptest.get",
+            {"output": ["httptestid", "name"], "hostids": hostid, "filter": {"name": [WEB_SCENARIO_NAME]}},
+        )
+        if scenarios:
+            api.call("httptest.update", {"httptestid": scenarios[0]["httptestid"], **params})
+        else:
+            api.call("httptest.create", params)
+        ensure_trigger(
+            api,
+            "Recorrido publico del portal fallo",
+            f"last(/web-host/web.test.fail[{WEB_SCENARIO_NAME}])<>0",
+            priority=4,
+        )
+        ensure_trigger(
+            api,
+            "Recorrido publico del portal lento",
+            f"last(/web-host/web.test.time[{WEB_SCENARIO_NAME},Health API,resp])>2",
+            priority=3,
+        )
+        print(f"Escenario web sintetico configurado: {WEB_SCENARIO_NAME}.")
+    except RuntimeError as exc:
+        print(f"AVISO: No se pudo configurar escenario web sintetico: {exc}")
+
+
 def configure_mailhog(api):
     media_types = api.call("mediatype.get", {"filter": {"name": ["Email"]}})
     if not media_types:
@@ -465,6 +508,7 @@ def main():
         )
         if host["host"] == "web-host":
             ensure_value_added_web_items(api, hostid, interfaceid)
+            ensure_web_scenario(api, hostid)
         print(f"Host configurado: {host['host']} -> agente {host['agent_dns']}")
 
     configure_mailhog(api)

@@ -655,8 +655,8 @@
         <strong id="db-rows">--</strong>
       </div>
       <div class="metric">
-        <span>Incidentes abiertos</span>
-        <strong id="open-incidents">--</strong>
+        <span>SLO runtime</span>
+        <strong id="slo-label">--</strong>
       </div>
       <div class="metric">
         <span>Muestras API</span>
@@ -895,6 +895,11 @@
             <code>GET /api/analytics</code>
             <span class="small" id="last-load-label">Sin cargas registradas en este arranque.</span>
           </div>
+          <div class="api-box">
+            <strong>SLO de laboratorio</strong>
+            <code>GET /api/slo</code>
+            <span class="small" id="slo-detail">Calculando disponibilidad del proceso.</span>
+          </div>
         </div>
         <div class="result-box" id="load-result">Listo para ejecutar una carga corta desde el navegador o con Artillery.</div>
       </section>
@@ -913,7 +918,8 @@
     const hostsCount = document.querySelector("#hosts-count");
     const telemetryCount = document.querySelector("#telemetry-count");
     const dbRows = document.querySelector("#db-rows");
-    const openIncidents = document.querySelector("#open-incidents");
+    const sloLabel = document.querySelector("#slo-label");
+    const sloDetail = document.querySelector("#slo-detail");
     const dbStatus = document.querySelector("#db-status");
     const dbTelemetry = document.querySelector("#db-telemetry");
     const incidentTotal = document.querySelector("#incident-total");
@@ -972,7 +978,8 @@
         hostsCount.textContent = hosts.count;
         telemetryCount.textContent = summary.telemetrySamples;
         dbRows.textContent = summary.database.telemetryRows;
-        openIncidents.textContent = summary.database.openIncidents;
+        sloLabel.textContent = summary.slo.availabilityPercent + "%";
+        sloDetail.textContent = `${summary.slo.status} | ${summary.slo.successfulResponses}/${summary.slo.totalResponses} respuestas exitosas`;
         if (summary.lastLoad) {
           lastLoadLabel.textContent = `${summary.lastLoad.type} | ${summary.lastLoad.elapsedMs} ms | ${summary.lastLoad.createdAt}`;
         } else {
@@ -995,7 +1002,6 @@
         dbTelemetry.textContent = db.telemetryRows;
         incidentTotal.textContent = db.incidentRows;
         dbFailures.textContent = db.queryFailures;
-        openIncidents.textContent = db.openIncidents;
         dbRows.textContent = db.telemetryRows;
         const rows = Array.isArray(incidents.incidents) ? incidents.incidents : [];
         incidentList.innerHTML = rows.map((incident) => `
