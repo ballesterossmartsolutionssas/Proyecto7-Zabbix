@@ -474,6 +474,69 @@
       white-space: pre-wrap;
     }
 
+    .db-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .db-chip {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f8fafc;
+      padding: 13px;
+      display: grid;
+      gap: 6px;
+      min-height: 86px;
+    }
+
+    .db-chip span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .db-chip strong {
+      color: var(--ink);
+      font-size: 20px;
+    }
+
+    .incident-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .incident {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .incident p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .severity,
+    .status-badge {
+      border-radius: 999px;
+      padding: 6px 9px;
+      font-size: 12px;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+
+    .severity { background: #fef3c7; color: #92400e; }
+    .status-badge { background: #e0f2fe; color: #075985; }
+
     .timeline-item {
       box-shadow: none;
       padding: 14px;
@@ -524,13 +587,16 @@
       .nav { justify-content: flex-start; }
       .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .api-grid { grid-template-columns: 1fr; }
+      .db-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     @media (max-width: 560px) {
       .shell { width: min(100% - 20px, 1180px); }
       .hero-main, .live-panel, .section { padding: 18px; }
       .metrics { grid-template-columns: 1fr; }
+      .db-strip { grid-template-columns: 1fr; }
       .service { grid-template-columns: auto 1fr; }
+      .incident { grid-template-columns: 1fr; }
       .tag { grid-column: 2; justify-self: start; }
       .lane { grid-template-columns: 1fr; }
       .nav a, .nav button { width: 100%; justify-content: center; }
@@ -585,12 +651,12 @@
         <strong id="hosts-count">4</strong>
       </div>
       <div class="metric">
-        <span>Servicios Docker</span>
-        <strong>13</strong>
+        <span>Filas MariaDB</span>
+        <strong id="db-rows">--</strong>
       </div>
       <div class="metric">
-        <span>Checks activos</span>
-        <strong id="checks-label">HTTP, DB, DNS, FTP</strong>
+        <span>Incidentes abiertos</span>
+        <strong id="open-incidents">--</strong>
       </div>
       <div class="metric">
         <span>Muestras API</span>
@@ -757,6 +823,37 @@
       <section class="section wide">
         <div class="section-head">
           <div>
+            <h2>Backend transaccional</h2>
+            <p>MariaDB guarda telemetria e incidentes para demostrar persistencia, consultas y carga sobre datos reales.</p>
+          </div>
+          <button class="load-button" type="button" id="create-incident">Crear incidente demo</button>
+        </div>
+        <div class="db-strip">
+          <div class="db-chip">
+            <span>Conexion DB</span>
+            <strong id="db-status">--</strong>
+          </div>
+          <div class="db-chip">
+            <span>Telemetria persistida</span>
+            <strong id="db-telemetry">--</strong>
+          </div>
+          <div class="db-chip">
+            <span>Incidentes totales</span>
+            <strong id="incident-total">--</strong>
+          </div>
+          <div class="db-chip">
+            <span>Fallos DB</span>
+            <strong id="db-failures">--</strong>
+          </div>
+        </div>
+        <div class="incident-list" id="incident-list">
+          <div class="result-box">Cargando incidentes desde MariaDB...</div>
+        </div>
+      </section>
+
+      <section class="section wide">
+        <div class="section-head">
+          <div>
             <h2>Backend y pruebas de carga</h2>
             <p>El sitio expone API real para que Artillery genere trafico, telemetria y consumo controlado de CPU/memoria.</p>
           </div>
@@ -789,8 +886,13 @@
             <span class="small">Agrupa resumen, inventario y recomendaciones de operacion.</span>
           </div>
           <div class="api-box">
-            <strong>Historial de carga</strong>
-            <code>lastLoad</code>
+            <strong>Incidentes persistentes</strong>
+            <code>GET/POST /api/incidents</code>
+            <span class="small">CRUD minimo respaldado por MariaDB para pruebas de escritura.</span>
+          </div>
+          <div class="api-box">
+            <strong>Analitica operativa</strong>
+            <code>GET /api/analytics</code>
             <span class="small" id="last-load-label">Sin cargas registradas en este arranque.</span>
           </div>
         </div>
@@ -809,8 +911,15 @@
     const statusPill = document.querySelector("#status-pill");
     const refresh = document.querySelector("#refresh");
     const hostsCount = document.querySelector("#hosts-count");
-    const checksLabel = document.querySelector("#checks-label");
     const telemetryCount = document.querySelector("#telemetry-count");
+    const dbRows = document.querySelector("#db-rows");
+    const openIncidents = document.querySelector("#open-incidents");
+    const dbStatus = document.querySelector("#db-status");
+    const dbTelemetry = document.querySelector("#db-telemetry");
+    const incidentTotal = document.querySelector("#incident-total");
+    const dbFailures = document.querySelector("#db-failures");
+    const incidentList = document.querySelector("#incident-list");
+    const createIncident = document.querySelector("#create-incident");
     const runLoad = document.querySelector("#run-load");
     const loadResult = document.querySelector("#load-result");
     const lastLoadLabel = document.querySelector("#last-load-label");
@@ -824,6 +933,16 @@
         statusPill.style.background = "#fee2e2";
         statusPill.style.color = "#991b1b";
       }
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[char]));
     }
 
     async function checkHealth() {
@@ -852,7 +971,8 @@
         const hosts = await hostsResponse.json();
         hostsCount.textContent = hosts.count;
         telemetryCount.textContent = summary.telemetrySamples;
-        checksLabel.textContent = hosts.hosts.map((host) => host.check).join(", ");
+        dbRows.textContent = summary.database.telemetryRows;
+        openIncidents.textContent = summary.database.openIncidents;
         if (summary.lastLoad) {
           lastLoadLabel.textContent = `${summary.lastLoad.type} | ${summary.lastLoad.elapsedMs} ms | ${summary.lastLoad.createdAt}`;
         } else {
@@ -860,6 +980,57 @@
         }
       } catch (error) {
         loadResult.textContent = "No se pudo consultar la API del backend.";
+      }
+    }
+
+    async function loadDatabase() {
+      try {
+        const [dbResponse, incidentsResponse] = await Promise.all([
+          fetch("/api/db/status", { cache: "no-store" }),
+          fetch("/api/incidents", { cache: "no-store" })
+        ]);
+        const db = await dbResponse.json();
+        const incidents = await incidentsResponse.json();
+        dbStatus.textContent = db.connected ? "Conectada" : "Degradada";
+        dbTelemetry.textContent = db.telemetryRows;
+        incidentTotal.textContent = db.incidentRows;
+        dbFailures.textContent = db.queryFailures;
+        openIncidents.textContent = db.openIncidents;
+        dbRows.textContent = db.telemetryRows;
+        const rows = Array.isArray(incidents.incidents) ? incidents.incidents : [];
+        incidentList.innerHTML = rows.map((incident) => `
+          <article class="incident">
+            <div>
+              <h3>${escapeHtml(incident.title)}</h3>
+              <p>${escapeHtml(incident.service)} | ${escapeHtml(incident.createdAt)}</p>
+            </div>
+            <span class="severity">${escapeHtml(incident.severity)}</span>
+            <span class="status-badge">${escapeHtml(incident.status)}</span>
+          </article>
+        `).join("") || '<div class="result-box">No hay incidentes registrados.</div>';
+      } catch (error) {
+        dbStatus.textContent = "Sin datos";
+        incidentList.innerHTML = '<div class="result-box">No se pudo consultar MariaDB.</div>';
+      }
+    }
+
+    async function createDemoIncident() {
+      createIncident.disabled = true;
+      try {
+        await fetch("/api/incidents", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            service: "web-service",
+            severity: "medium",
+            status: "open",
+            title: "Incidente generado desde el portal",
+            description: "Registro creado para demostrar persistencia en MariaDB durante la sustentacion."
+          })
+        });
+        await Promise.all([loadDatabase(), loadSummary()]);
+      } finally {
+        createIncident.disabled = false;
       }
     }
 
@@ -882,7 +1053,7 @@
         const data = await response.json();
         const sample = await telemetry.json();
         loadResult.textContent = `CPU: ${data.cpu.elapsedMs} ms, rondas: ${data.cpu.rounds}\nPayload: ${data.payload.sizeKb} KB\nRun ID: ${data.recorded.id}\nMuestra guardada: ${sample.id}`;
-        await loadSummary();
+        await Promise.all([loadSummary(), loadDatabase()]);
       } catch (error) {
         loadResult.textContent = "Fallo la carga corta: " + error.message;
       } finally {
@@ -892,10 +1063,13 @@
 
     refresh.addEventListener("click", checkHealth);
     runLoad.addEventListener("click", executeShortLoad);
+    createIncident.addEventListener("click", createDemoIncident);
     checkHealth();
     loadSummary();
+    loadDatabase();
     setInterval(checkHealth, 30000);
     setInterval(loadSummary, 30000);
+    setInterval(loadDatabase, 30000);
   </script>
 </body>
 </html>

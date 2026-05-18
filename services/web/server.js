@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const fs = require("fs");
 const http = require("http");
+const mysql = require("mysql2/promise");
 const path = require("path");
 const { URL } = require("url");
 
@@ -8,12 +9,28 @@ const PORT = Number(process.env.PORT || 80);
 const PUBLIC_DIR = path.join(__dirname, "html");
 const startedAt = Date.now();
 const maxBodyBytes = 256 * 1024;
+const dbConfig = {
+  host: process.env.DB_HOST || "db-service",
+  port: Number(process.env.DB_PORT || 3306),
+  database: process.env.DB_NAME || "proyecto7",
+  user: process.env.DB_USER || "app",
+  password: process.env.DB_PASSWORD || "apppass",
+};
 
 const state = {
   requests: {},
   statusCodes: {},
   telemetry: [],
   loadRuns: [],
+  dbQueryFailures: 0,
+  db: {
+    connected: false,
+    error: null,
+    lastQueryAt: null,
+    telemetryRows: 0,
+    incidentRows: 0,
+    openIncidents: 0,
+  },
   syntheticEvents: [
     {
       type: "problem",
@@ -31,6 +48,8 @@ const state = {
     },
   ],
 };
+
+let dbPool = null;
 
 const hosts = [
   {
@@ -94,6 +113,112 @@ function notFound(res) {
 
 function badRequest(res, message) {
   json(res, 400, { error: "bad_request", message });
+}
+
+function serviceUnavailable(res, message) {
+  json(res, 503, { error: "service_unavailable", message });
+}
+
+function mysqlDate(iso = new Date().toISOString()) {
+  return iso.slice(0, 19).replace("T", " ");
+}
+
+function publicIncident(row) {
+  return {
+    id: row.id,
+    service: row.service,
+    severity: row.severity,
+    status: row.status,
+    title: row.title,
+    description: row.description,
+    createdAt: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
+    resolvedAt: row.resolved_at instanceof Date ? row.resolved_at.toISOString() : row.resolved_at,
+  };
+}
+
+async function queryDb(sql, params = []) {
+  if (!dbPool) return null;
+  try {
+    const [rows] = await dbPool.execute(sql, params);
+    state.db.connected = true;
+    state.db.error = null;
+    state.db.lastQueryAt = new Date().toISOString();
+    return rows;
+  } catch (error) {
+    state.db.connected = false;
+    state.db.error = error.message;
+    state.dbQueryFailures += 1;
+    return null;
+  }
+}
+
+async function refreshDbStats() {
+  if (!dbPool) return state.db;
+  const rows = await queryDb(
+    "SELECT (SELECT COUNT(*) FROM telemetry_samples) AS telemetryRows, " +
+      "(SELECT COUNT(*) FROM incidents) AS incidentRows, " +
+      "(SELECT COUNT(*) FROM incidents WHERE status <> 'resolved') AS openIncidents"
+  );
+  if (rows && rows[0]) {
+    state.db.telemetryRows = Number(rows[0].telemetryRows || 0);
+    state.db.incidentRows = Number(rows[0].incidentRows || 0);
+    state.db.openIncidents = Number(rows[0].openIncidents || 0);
+  }
+  return state.db;
+}
+
+async function seedIncidents() {
+  const rows = await queryDb("SELECT COUNT(*) AS count FROM incidents");
+  if (!rows || Number(rows[0].count) > 0) return;
+  const samples = [
+    ["web-service", "high", "resolved", "Caida controlada del portal", "Prueba de trigger y recuperacion observada por Zabbix."],
+    ["db-service", "medium", "open", "Validacion de base de datos", "Incidente de laboratorio para demostrar gestion de eventos persistente."],
+  ];
+  for (const sample of samples) {
+    await queryDb(
+      "INSERT INTO incidents (id, service, severity, status, title, description, created_at, resolved_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      [
+        crypto.randomUUID(),
+        sample[0],
+        sample[1],
+        sample[2],
+        sample[3],
+        sample[4],
+        mysqlDate(),
+        sample[2] === "resolved" ? mysqlDate() : null,
+      ]
+    );
+  }
+}
+
+async function initDatabase() {
+  try {
+    dbPool = mysql.createPool({
+      ...dbConfig,
+      waitForConnections: true,
+      connectionLimit: 6,
+      namedPlaceholders: false,
+    });
+    await queryDb(
+      "CREATE TABLE IF NOT EXISTS telemetry_samples (" +
+        "id VARCHAR(36) PRIMARY KEY, received_at DATETIME NOT NULL, source VARCHAR(80) NOT NULL, " +
+        "cpu DECIMAL(5,2) NOT NULL, memory DECIMAL(5,2) NOT NULL, disk DECIMAL(5,2) NOT NULL, message VARCHAR(255) NOT NULL, " +
+        "INDEX idx_received_at (received_at), INDEX idx_source (source))"
+    );
+    await queryDb(
+      "CREATE TABLE IF NOT EXISTS incidents (" +
+        "id VARCHAR(36) PRIMARY KEY, service VARCHAR(80) NOT NULL, severity VARCHAR(20) NOT NULL, status VARCHAR(20) NOT NULL, " +
+        "title VARCHAR(160) NOT NULL, description TEXT, created_at DATETIME NOT NULL, resolved_at DATETIME NULL, " +
+        "INDEX idx_status (status), INDEX idx_service (service), INDEX idx_created_at (created_at))"
+    );
+    await seedIncidents();
+    await refreshDbStats();
+  } catch (error) {
+    state.db.connected = false;
+    state.db.error = error.message;
+    state.dbQueryFailures += 1;
+    console.error(`Database init failed: ${error.message}`);
+  }
 }
 
 function readJson(req) {
@@ -207,6 +332,18 @@ function metricsText() {
     "# HELP proyecto7_load_runs_total Cargas sinteticas ejecutadas.",
     "# TYPE proyecto7_load_runs_total counter",
     `proyecto7_load_runs_total ${state.loadRuns.length}`,
+    "# HELP proyecto7_db_connected Estado de conexion a MariaDB.",
+    "# TYPE proyecto7_db_connected gauge",
+    `proyecto7_db_connected ${state.db.connected ? 1 : 0}`,
+    "# HELP proyecto7_db_query_failures_total Fallos de consultas contra MariaDB.",
+    "# TYPE proyecto7_db_query_failures_total counter",
+    `proyecto7_db_query_failures_total ${state.dbQueryFailures}`,
+    "# HELP proyecto7_db_telemetry_rows_total Filas de telemetria persistidas.",
+    "# TYPE proyecto7_db_telemetry_rows_total gauge",
+    `proyecto7_db_telemetry_rows_total ${state.db.telemetryRows}`,
+    "# HELP proyecto7_incidents_open Incidentes abiertos en la app.",
+    "# TYPE proyecto7_incidents_open gauge",
+    `proyecto7_incidents_open ${state.db.openIncidents}`,
     "# HELP proyecto7_last_load_elapsed_ms Duracion de la ultima carga sintetica.",
     "# TYPE proyecto7_last_load_elapsed_ms gauge",
     `proyecto7_last_load_elapsed_ms ${data.lastLoad?.elapsedMs || 0}`,
@@ -230,7 +367,7 @@ function summary() {
   const uptimeSeconds = Math.round((Date.now() - startedAt) / 1000);
   return {
     app: "Proyecto 7 Web Service",
-    version: "1.2.0",
+    version: "1.3.0",
     environment: process.env.NODE_ENV || "development",
     status: "operativo",
     uptimeSeconds,
@@ -240,6 +377,14 @@ function summary() {
     recentTelemetry: state.telemetry.slice(-5).reverse(),
     loadRuns: state.loadRuns.length,
     lastLoad: latestLoadRun(),
+    database: {
+      connected: state.db.connected,
+      error: state.db.error,
+      telemetryRows: state.db.telemetryRows,
+      incidentRows: state.db.incidentRows,
+      openIncidents: state.db.openIncidents,
+      lastQueryAt: state.db.lastQueryAt,
+    },
     requests: state.requests,
     statusCodes: state.statusCodes,
     runtime: {
@@ -284,7 +429,95 @@ async function handleApi(req, res, url) {
     return;
   }
 
+  if (pathname === "/api/db/status") {
+    await refreshDbStats();
+    json(res, 200, {
+      connected: state.db.connected,
+      host: dbConfig.host,
+      database: dbConfig.database,
+      telemetryRows: state.db.telemetryRows,
+      incidentRows: state.db.incidentRows,
+      openIncidents: state.db.openIncidents,
+      queryFailures: state.dbQueryFailures,
+      lastQueryAt: state.db.lastQueryAt,
+      error: state.db.error,
+    });
+    return;
+  }
+
+  if (pathname === "/api/analytics") {
+    await refreshDbStats();
+    json(res, 200, {
+      generatedAt: new Date().toISOString(),
+      db: state.db,
+      loadRuns: state.loadRuns.slice(-10).reverse(),
+      latestTelemetry: state.telemetry.slice(-10).reverse(),
+      requestCounters: state.requests,
+      statusCounters: state.statusCodes,
+    });
+    return;
+  }
+
+  if (pathname === "/api/incidents" && req.method === "GET") {
+    if (!dbPool) {
+      serviceUnavailable(res, "MariaDB no esta disponible para consultar incidentes.");
+      return;
+    }
+    const rows = await queryDb(
+      "SELECT id, service, severity, status, title, description, created_at, resolved_at FROM incidents ORDER BY created_at DESC LIMIT 50"
+    );
+    if (!rows) {
+      serviceUnavailable(res, state.db.error || "No se pudo consultar MariaDB.");
+      return;
+    }
+    json(res, 200, { count: rows.length, incidents: rows.map(publicIncident) });
+    return;
+  }
+
+  if (pathname === "/api/incidents" && req.method === "POST") {
+    if (!dbPool) {
+      serviceUnavailable(res, "MariaDB no esta disponible para crear incidentes.");
+      return;
+    }
+    try {
+      const payload = await readJson(req);
+      const incident = {
+        id: crypto.randomUUID(),
+        service: String(payload.service || "web-service").slice(0, 80),
+        severity: String(payload.severity || "medium").slice(0, 20),
+        status: String(payload.status || "open").slice(0, 20),
+        title: String(payload.title || "Incidente generado por prueba").slice(0, 160),
+        description: String(payload.description || "Evento creado desde el backend de demostracion.").slice(0, 1000),
+        createdAt: new Date().toISOString(),
+        resolvedAt: payload.status === "resolved" ? new Date().toISOString() : null,
+      };
+      const result = await queryDb(
+        "INSERT INTO incidents (id, service, severity, status, title, description, created_at, resolved_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        [
+          incident.id,
+          incident.service,
+          incident.severity,
+          incident.status,
+          incident.title,
+          incident.description,
+          mysqlDate(incident.createdAt),
+          incident.resolvedAt ? mysqlDate(incident.resolvedAt) : null,
+        ]
+      );
+      if (!result) {
+        serviceUnavailable(res, state.db.error || "No se pudo escribir el incidente.");
+        return;
+      }
+      await refreshDbStats();
+      json(res, 201, incident);
+    } catch (error) {
+      badRequest(res, error.message);
+    }
+    return;
+  }
+
   if (pathname === "/api/report") {
+    await refreshDbStats();
     json(res, 200, {
       generatedAt: new Date().toISOString(),
       summary: summary(),
@@ -293,6 +526,7 @@ async function handleApi(req, res, url) {
         "Mantener dashboard en Zabbix para tendencias historicas.",
         "Ejecutar Artillery antes de la sustentacion para mostrar impacto en metricas.",
         "Comparar latencia de /health contra eventos de problema y recuperacion.",
+        "Usar /api/incidents para demostrar persistencia en MariaDB durante pruebas de estres.",
       ],
     });
     return;
@@ -312,6 +546,21 @@ async function handleApi(req, res, url) {
       };
       state.telemetry.push(sample);
       if (state.telemetry.length > 500) state.telemetry.shift();
+      if (dbPool) {
+        await queryDb(
+          "INSERT INTO telemetry_samples (id, received_at, source, cpu, memory, disk, message) VALUES (?, ?, ?, ?, ?, ?, ?)",
+          [
+            sample.id,
+            mysqlDate(sample.receivedAt),
+            sample.source,
+            sample.cpu,
+            sample.memory,
+            sample.disk,
+            sample.message.slice(0, 255),
+          ]
+        );
+        await refreshDbStats();
+      }
       json(res, 201, sample);
     } catch (error) {
       badRequest(res, error.message);
@@ -376,4 +625,9 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`Proyecto 7 web-service listening on ${PORT}`);
+  initDatabase();
 });
+
+setInterval(() => {
+  if (dbPool) refreshDbStats();
+}, 30000).unref();

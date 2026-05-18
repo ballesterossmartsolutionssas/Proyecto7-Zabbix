@@ -26,6 +26,9 @@ Tiempo maximo: 20 minutos.
 4. Demostracion - 7 min
    - Mostrar hosts y latest data.
    - Mostrar dashboard o graficas.
+   - Abrir `https://web-zabbix.negociocontigo.com` y crear un incidente demo.
+   - Mostrar `/api/db/status`, `/api/incidents` y `/metrics`.
+   - Ejecutar Artillery smoke para generar trafico, telemetria y escrituras en MariaDB.
    - Detener un servicio con `test-failure.ps1`.
    - Ver problema en Zabbix.
    - Ver correo en MailHog.
@@ -34,7 +37,8 @@ Tiempo maximo: 20 minutos.
 5. Conclusiones - 3 min
    - Zabbix centraliza visibilidad operativa.
    - Triggers permiten reaccionar ante fallas.
-   - MailHog valida el flujo de alertas sin usar correo real.
+   - MailHog valida el flujo de alertas y el canal SMTP real demuestra escalamiento externo.
+   - La app monitoreada tiene backend, frontend, persistencia e endpoints de carga para pruebas de estres.
    - Docker Compose hace reproducible el despliegue.
 
 ## Reparto por integrante

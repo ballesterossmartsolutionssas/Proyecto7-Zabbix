@@ -20,6 +20,7 @@ docker compose -f "$COMPOSE_FILE" ps web-service zabbix-server zabbix-web mailho
 section "Endpoints publicos"
 curl -fsS "$BASE_URL/health"
 curl -fsS "$BASE_URL/api/summary" | python3 -c "import json,sys; d=json.load(sys.stdin); print({'version': d['version'], 'uptimeSeconds': d['uptimeSeconds'], 'telemetrySamples': d['telemetrySamples'], 'loadRuns': d['loadRuns']})"
+curl -fsS "$BASE_URL/api/db/status" | python3 -c "import json,sys; d=json.load(sys.stdin); print({'dbConnected': d['connected'], 'telemetryRows': d['telemetryRows'], 'incidents': d['incidentRows'], 'openIncidents': d['openIncidents']})"
 curl -fsS "$BASE_URL/metrics" | sed -n '1,14p'
 
 section "Artillery smoke"
@@ -31,6 +32,8 @@ fi
 
 section "Carga sintetica directa"
 curl -fsS "$BASE_URL/api/load/mixed?ms=90&kb=96" | python3 -c "import json,sys; d=json.load(sys.stdin); print({'runId': d['recorded']['id'], 'elapsedMs': d['recorded']['elapsedMs'], 'sizeKb': d['recorded']['sizeKb']})"
+curl -fsS -H 'Content-Type: application/json' -d '{"service":"web-service","severity":"medium","status":"open","title":"Incidente demo script","description":"Incidente creado por demo-full.sh"}' "$BASE_URL/api/incidents" | python3 -c "import json,sys; d=json.load(sys.stdin); print({'incidentId': d['id'], 'service': d['service'], 'status': d['status']})"
+curl -fsS "$BASE_URL/api/incidents" | python3 -c "import json,sys; d=json.load(sys.stdin); print({'incidentsReturned': d['count']})"
 
 section "Falla controlada web-service"
 docker compose -f "$COMPOSE_FILE" stop web-service

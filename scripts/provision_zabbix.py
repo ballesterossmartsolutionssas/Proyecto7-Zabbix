@@ -381,6 +381,7 @@ def ensure_dashboard(api, groupid):
 def ensure_value_added_web_items(api, hostid, interfaceid):
     latency_key = f"net.tcp.service.perf[https,{PUBLIC_WEB_HOST},443]"
     metrics_key = "proyecto7.metrics.exporter"
+    db_status_key = "proyecto7.db.status"
     ensure_item(
         api,
         hostid,
@@ -400,6 +401,16 @@ def ensure_value_added_web_items(api, hostid, interfaceid):
         item_type=19,
         extra_params={"url": f"https://{PUBLIC_WEB_HOST}/metrics"},
     )
+    ensure_item(
+        api,
+        hostid,
+        interfaceid,
+        "Estado MariaDB desde API Proyecto 7",
+        db_status_key,
+        value_type=4,
+        item_type=19,
+        extra_params={"url": f"https://{PUBLIC_WEB_HOST}/api/db/status"},
+    )
     ensure_trigger(
         api,
         "Latencia alta del portal web-zabbix",
@@ -412,7 +423,13 @@ def ensure_value_added_web_items(api, hostid, interfaceid):
         f"nodata(/web-host/{metrics_key},3m)=1",
         priority=3,
     )
-    print("Items de valor agregado configurados para web-host: latencia HTTPS publica y exporter /metrics.")
+    ensure_trigger(
+        api,
+        "API de estado MariaDB sin datos",
+        f"nodata(/web-host/{db_status_key},3m)=1",
+        priority=3,
+    )
+    print("Items de valor agregado configurados para web-host: latencia HTTPS publica, exporter /metrics y estado MariaDB.")
 
 
 def main():

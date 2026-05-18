@@ -11,7 +11,7 @@ Integrantes:
 
 Implementar una plataforma de monitoreo de infraestructura con Zabbix 6.x, Docker y Docker Compose. La solucion monitorea disponibilidad, servicios, metricas basicas y alertas de una red de contenedores.
 
-Como valor agregado, el host `web-service` no es solo una pagina estatica: es una aplicacion Node.js con frontend, backend, endpoints JSON, recepcion de telemetria sintetica y rutas de carga controlada para ejecutar pruebas con Artillery.
+Como valor agregado, el host `web-service` no es solo una pagina estatica: es una aplicacion Node.js con frontend, backend, endpoints JSON, recepcion de telemetria sintetica, persistencia en MariaDB, gestion de incidentes y rutas de carga controlada para ejecutar pruebas con Artillery.
 
 ## Arquitectura
 
@@ -126,9 +126,23 @@ Backend del servicio web:
 - Inventario JSON: `GET /api/hosts`
 - Eventos de prueba: `GET /api/events`
 - Reporte agregado: `GET /api/report`
+- Estado de base de datos: `GET /api/db/status`
+- Analitica operativa: `GET /api/analytics`
+- Incidentes persistentes: `GET /api/incidents`, `POST /api/incidents`
 - Telemetria sintetica: `POST /api/telemetry`
 - Carga controlada: `GET /api/load/cpu`, `GET /api/load/memory`, `GET /api/load/mixed`
 - Exporter de metricas: `GET /metrics`
+
+El backend crea automaticamente tablas en `db-service`:
+
+- `telemetry_samples`: muestras generadas desde Artillery o desde el portal.
+- `incidents`: incidentes de laboratorio para demostrar escritura, consulta y persistencia.
+
+Zabbix tambien consulta por HTTP Agent:
+
+- Latencia HTTPS publica del portal `web-zabbix`.
+- Exporter `/metrics`.
+- Estado JSON de MariaDB en `/api/db/status`.
 
 En la VPS:
 
@@ -240,8 +254,9 @@ npx artillery run tests/artillery-smoke.yml
 La prueba cubre:
 
 - Navegacion del frontend.
-- Consulta de `/health`, `/api/summary`, `/api/hosts` y `/api/report`.
+- Consulta de `/health`, `/api/summary`, `/api/hosts`, `/api/report`, `/api/db/status`, `/api/incidents` y `/api/analytics`.
 - Envio de muestras a `/api/telemetry`.
+- Escritura de incidentes en MariaDB con `POST /api/incidents`.
 - Carga controlada sobre `/api/load/mixed`, `/api/load/cpu` y `/api/load/memory`.
 - Lectura del exporter `/metrics`.
 
@@ -267,6 +282,7 @@ Proyecto7-Zabbix/
   services/
     web/
       Dockerfile
+      package-lock.json
       server.js
       package.json
       html/

@@ -19,6 +19,10 @@ scenarios:
       - get:
           url: "/api/summary"
       - get:
+          url: "/api/db/status"
+      - get:
+          url: "/api/incidents"
+      - get:
           url: "/metrics"
       - post:
           url: "/api/telemetry"
@@ -30,3 +34,11 @@ scenarios:
             message: "smoke test"
       - get:
           url: "/api/load/mixed?ms=20&kb=16"
+      - post:
+          url: "/api/incidents"
+          json:
+            service: "web-service"
+            severity: "low"
+            status: "open"
+            title: "Smoke incident"
+            description: "Validacion rapida de escritura en MariaDB"

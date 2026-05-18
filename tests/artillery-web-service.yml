@@ -33,6 +33,10 @@ scenarios:
       - get:
           url: "/api/hosts"
       - get:
+          url: "/api/db/status"
+      - get:
+          url: "/api/incidents"
+      - get:
           url: "/metrics"
       - think: 1
 
@@ -49,6 +53,8 @@ scenarios:
             message: "muestra enviada durante prueba de carga"
       - get:
           url: "/api/report"
+      - get:
+          url: "/api/analytics"
       - think: 1
 
   - name: "Carga controlada de backend"
@@ -62,3 +68,19 @@ scenarios:
           url: "/api/load/memory?kb=128"
       - get:
           url: "/api/summary"
+
+  - name: "Escritura transaccional MariaDB"
+    weight: 10
+    flow:
+      - post:
+          url: "/api/incidents"
+          json:
+            service: "web-service"
+            severity: "medium"
+            status: "open"
+            title: "Incidente Artillery"
+            description: "Incidente creado durante la prueba de carga para validar persistencia."
+      - get:
+          url: "/api/incidents"
+      - get:
+          url: "/api/db/status"
