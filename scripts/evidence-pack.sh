@@ -39,16 +39,31 @@ curl -fsS "$BASE_URL/metrics" -o "$OUT_DIR/metrics.prom"
 printf -- "- /metrics: metrics.prom\n" | tee -a "$OUT_DIR/README.md"
 
 section "Carga smoke Artillery"
+artillery_done=0
 if command -v npx >/dev/null 2>&1; then
-  npx --yes artillery@latest run tests/artillery-smoke.yml --output "$OUT_DIR/artillery-smoke.json" | tee "$OUT_DIR/artillery-smoke.txt"
-  printf -- "- Resultado texto: artillery-smoke.txt\n- Resultado JSON: artillery-smoke.json\n" | tee -a "$OUT_DIR/README.md"
+  if npx --yes artillery@latest run tests/artillery-smoke.yml --output "$OUT_DIR/artillery-smoke.json" | tee "$OUT_DIR/artillery-smoke.txt"; then
+    artillery_done=1
+    printf -- "- Resultado texto: artillery-smoke.txt\n- Resultado JSON: artillery-smoke.json\n" | tee -a "$OUT_DIR/README.md"
+  fi
 elif command -v docker >/dev/null 2>&1; then
-  docker run --rm -v "$PWD:/work" -w /work node:22-alpine \
+  if docker run --rm -v "$PWD:/work" -w /work node:22-alpine \
     sh -lc "npx --yes artillery@latest run tests/artillery-smoke.yml --output '$OUT_DIR/artillery-smoke.json'" \
-    | tee "$OUT_DIR/artillery-smoke.txt"
-  printf -- "- Resultado texto: artillery-smoke.txt\n- Resultado JSON: artillery-smoke.json\n" | tee -a "$OUT_DIR/README.md"
-else
-  echo "npx no esta disponible; se omitio Artillery." | tee "$OUT_DIR/artillery-smoke.txt"
+    | tee "$OUT_DIR/artillery-smoke.txt"; then
+    artillery_done=1
+    printf -- "- Resultado texto: artillery-smoke.txt\n- Resultado JSON: artillery-smoke.json\n" | tee -a "$OUT_DIR/README.md"
+  fi
+fi
+
+if [ "$artillery_done" -ne 1 ]; then
+  echo "Artillery no estuvo disponible; ejecutando smoke HTTP alterno con curl." | tee "$OUT_DIR/artillery-smoke.txt"
+  : > "$OUT_DIR/curl-smoke.ndjson"
+  for i in $(seq 1 8); do
+    for path in / /health /api/summary /api/db/status /api/slo /api/incidents /metrics; do
+      code="$(curl -o /dev/null -s -w '%{http_code}' "$BASE_URL$path")"
+      printf '{"iteration":%s,"path":"%s","status":%s}\n' "$i" "$path" "$code" | tee -a "$OUT_DIR/curl-smoke.ndjson" >/dev/null
+    done
+  done
+  printf -- "- Smoke alterno HTTP: curl-smoke.ndjson\n" | tee -a "$OUT_DIR/README.md"
 fi
 
 section "Items Zabbix principales"
