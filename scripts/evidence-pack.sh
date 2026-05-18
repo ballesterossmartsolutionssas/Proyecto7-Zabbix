@@ -42,6 +42,11 @@ section "Carga smoke Artillery"
 if command -v npx >/dev/null 2>&1; then
   npx --yes artillery@latest run tests/artillery-smoke.yml --output "$OUT_DIR/artillery-smoke.json" | tee "$OUT_DIR/artillery-smoke.txt"
   printf -- "- Resultado texto: artillery-smoke.txt\n- Resultado JSON: artillery-smoke.json\n" | tee -a "$OUT_DIR/README.md"
+elif command -v docker >/dev/null 2>&1; then
+  docker run --rm -v "$PWD:/work" -w /work node:20-alpine \
+    sh -lc "npx --yes artillery@latest run tests/artillery-smoke.yml --output '$OUT_DIR/artillery-smoke.json'" \
+    | tee "$OUT_DIR/artillery-smoke.txt"
+  printf -- "- Resultado texto: artillery-smoke.txt\n- Resultado JSON: artillery-smoke.json\n" | tee -a "$OUT_DIR/README.md"
 else
   echo "npx no esta disponible; se omitio Artillery." | tee "$OUT_DIR/artillery-smoke.txt"
 fi
