@@ -633,6 +633,94 @@
       display: inline-block;
     }
 
+    .compliance-summary {
+      display: grid;
+      grid-template-columns: 0.8fr repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .score-card,
+    .compliance-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f8fafc;
+      padding: 15px;
+    }
+
+    .score-card strong,
+    .compliance-card strong {
+      display: block;
+      color: var(--ink);
+      font-size: 28px;
+      margin-top: 8px;
+    }
+
+    .score-card span,
+    .compliance-card span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+      text-transform: uppercase;
+    }
+
+    .compliance-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .compliance-item {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 14px;
+      display: grid;
+      gap: 8px;
+      min-height: 150px;
+    }
+
+    .compliance-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .compliance-area {
+      color: var(--teal);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .compliance-status {
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 11px;
+      font-weight: 900;
+      white-space: nowrap;
+      background: #dcfce7;
+      color: #14532d;
+    }
+
+    .compliance-status.riesgo {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .compliance-status.pendiente {
+      background: #e0f2fe;
+      color: #075985;
+    }
+
+    .compliance-item p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
     .incident {
       border: 1px solid var(--line);
       border-radius: 8px;
@@ -717,6 +805,8 @@
       .load-lab { grid-template-columns: 1fr; }
       .live-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .charts-grid { grid-template-columns: 1fr; }
+      .compliance-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .compliance-list { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 560px) {
@@ -725,6 +815,7 @@
       .metrics { grid-template-columns: 1fr; }
       .db-strip { grid-template-columns: 1fr; }
       .live-stats { grid-template-columns: 1fr; }
+      .compliance-summary { grid-template-columns: 1fr; }
       .service { grid-template-columns: auto 1fr; }
       .incident { grid-template-columns: 1fr; }
       .tag { grid-column: 2; justify-self: start; }
@@ -1030,6 +1121,11 @@
             <code>GET /api/slo</code>
             <span class="small" id="slo-detail">Calculando disponibilidad del proceso.</span>
           </div>
+          <div class="api-box">
+            <strong>Matriz de cumplimiento</strong>
+            <code>GET /api/compliance</code>
+            <span class="small">Cruza requisitos del enunciado contra evidencia tecnica del despliegue.</span>
+          </div>
         </div>
         <div class="result-box" id="load-result">Listo para ejecutar una carga corta desde el navegador o con Artillery.</div>
       </section>
@@ -1120,6 +1216,37 @@
           </div>
         </div>
       </section>
+
+      <section class="section wide">
+        <div class="section-head">
+          <div>
+            <h2>Matriz de cumplimiento</h2>
+            <p>Resumen verificable del enunciado del proyecto, con evidencia tecnica y valor agregado listo para sustentar.</p>
+          </div>
+          <a class="load-button" href="/api/compliance">Ver JSON</a>
+        </div>
+        <div class="compliance-summary">
+          <div class="score-card">
+            <span>Cumplimiento</span>
+            <strong id="compliance-score">--</strong>
+          </div>
+          <div class="compliance-card">
+            <span>Cumple</span>
+            <strong id="compliance-ok">--</strong>
+          </div>
+          <div class="compliance-card">
+            <span>Pendiente</span>
+            <strong id="compliance-pending">--</strong>
+          </div>
+          <div class="compliance-card">
+            <span>Riesgo</span>
+            <strong id="compliance-risk">--</strong>
+          </div>
+        </div>
+        <div class="compliance-list" id="compliance-list">
+          <div class="result-box">Cargando matriz de cumplimiento...</div>
+        </div>
+      </section>
     </main>
 
     <footer>
@@ -1163,6 +1290,11 @@
     const loadChartLabel = document.querySelector("#load-chart-label");
     const routesChartLabel = document.querySelector("#routes-chart-label");
     const sloChartLabel = document.querySelector("#slo-chart-label");
+    const complianceScore = document.querySelector("#compliance-score");
+    const complianceOk = document.querySelector("#compliance-ok");
+    const compliancePending = document.querySelector("#compliance-pending");
+    const complianceRisk = document.querySelector("#compliance-risk");
+    const complianceList = document.querySelector("#compliance-list");
 
     function setStatus(kind, text) {
       statusPill.innerHTML = '<span class="dot"></span>' + text;
@@ -1470,6 +1602,29 @@
       }
     }
 
+    async function loadCompliance() {
+      try {
+        const response = await fetch("/api/compliance", { cache: "no-store" });
+        const data = await response.json();
+        complianceScore.textContent = `${data.scorePercent}%`;
+        complianceOk.textContent = data.ok;
+        compliancePending.textContent = data.pending;
+        complianceRisk.textContent = data.risk;
+        complianceList.innerHTML = data.checks.map((check) => `
+          <article class="compliance-item">
+            <div class="compliance-top">
+              <span class="compliance-area">${escapeHtml(check.area)}</span>
+              <span class="compliance-status ${escapeHtml(check.status)}">${escapeHtml(check.status)}</span>
+            </div>
+            <h3>${escapeHtml(check.requirement)}</h3>
+            <p>${escapeHtml(check.evidence)}</p>
+          </article>
+        `).join("");
+      } catch (error) {
+        complianceList.innerHTML = '<div class="result-box">No se pudo consultar /api/compliance.</div>';
+      }
+    }
+
     async function loadLive() {
       try {
         const response = await fetch("/api/live", { cache: "no-store" });
@@ -1515,11 +1670,13 @@
     loadDatabase();
     loadLive();
     loadCharts();
+    loadCompliance();
     setInterval(checkHealth, 30000);
     setInterval(loadSummary, 30000);
     setInterval(loadDatabase, 30000);
     setInterval(loadLive, 2000);
     setInterval(loadCharts, 10000);
+    setInterval(loadCompliance, 30000);
   </script>
 </body>
 </html>

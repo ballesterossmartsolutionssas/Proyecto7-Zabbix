@@ -31,6 +31,7 @@ Tiempo maximo: 20 minutos.
    - Ejecutar `artillery run tests/artillery-live-demo.yml` con el panel `Load Lab en vivo` abierto.
    - Mostrar como suben requests, telemetria, cargas y SLO durante la ejecucion.
    - Mostrar el `Centro de graficas` con CPU, memoria, disco, rutas y cargas recientes.
+   - Mostrar la `Matriz de cumplimiento` para cruzar cada requisito con evidencia.
    - Mostrar el web scenario `Proyecto 7 - recorrido publico` en Zabbix.
    - Detener un servicio con `test-failure.ps1`.
    - Ver problema en Zabbix.
@@ -42,7 +43,7 @@ Tiempo maximo: 20 minutos.
    - Triggers permiten reaccionar ante fallas.
    - MailHog valida el flujo de alertas y el canal SMTP real demuestra escalamiento externo.
    - La app monitoreada tiene backend, frontend, persistencia e endpoints de carga para pruebas de estres.
-   - El SLO y el paquete de evidencias permiten explicar disponibilidad y resultados de forma verificable.
+   - El SLO, la matriz de cumplimiento y el paquete de evidencias permiten explicar disponibilidad y resultados de forma verificable.
    - Docker Compose hace reproducible el despliegue.
 
 ## Reparto por integrante

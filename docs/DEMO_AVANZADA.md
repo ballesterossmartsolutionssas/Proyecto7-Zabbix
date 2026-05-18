@@ -17,6 +17,7 @@ Esta demo muestra valor agregado sobre el requerimiento base: monitoreo sintetic
    - Incidentes persistidos.
    - SLO runtime.
    - Centro de graficas con telemetria, cargas, rutas y SLO.
+   - Matriz de cumplimiento con requisitos del enunciado y evidencia tecnica.
 
 3. Abrir endpoints verificables:
 
@@ -24,6 +25,7 @@ Esta demo muestra valor agregado sobre el requerimiento base: monitoreo sintetic
    https://web-zabbix.negociocontigo.com/api/db/status
    https://web-zabbix.negociocontigo.com/api/slo
    https://web-zabbix.negociocontigo.com/api/charts
+   https://web-zabbix.negociocontigo.com/api/compliance
    https://web-zabbix.negociocontigo.com/metrics
    ```
 
@@ -67,6 +69,12 @@ Esta demo muestra valor agregado sobre el requerimiento base: monitoreo sintetic
    bash scripts/evidence-pack.sh
    ```
 
+   Para auditar requisitos de forma reproducible:
+
+   ```bash
+   bash scripts/audit-project.sh
+   ```
+
 ## Argumento tecnico
 
 El proyecto no se limita a revisar puertos abiertos. La plataforma monitorea una aplicacion con frontend, backend, persistencia en MariaDB y endpoints de telemetria. Artillery genera trafico y escrituras reales, mientras Zabbix observa disponibilidad, latencia HTTPS publica, exporter de metricas, estado de DB y recorrido sintetico HTTP.
@@ -76,6 +84,8 @@ El proyecto no se limita a revisar puertos abiertos. La plataforma monitorea una
 - `summary.json`: version, uptime y contadores.
 - `db-status.json`: conexion, filas persistidas e incidentes.
 - `slo.json`: disponibilidad calculada del proceso.
+- `charts.json`: datos usados para graficas operativas.
+- `compliance.json`: matriz de cumplimiento del enunciado.
 - `metrics.prom`: metricas estilo Prometheus.
 - `artillery-smoke.txt`: resultado de prueba de carga.
 - `artillery-live.txt`: resultado de demo en vivo si se ejecuta `scripts/live-artillery-demo.sh`.

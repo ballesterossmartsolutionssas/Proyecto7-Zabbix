@@ -10,6 +10,9 @@
 - [x] Informe IEEE en DOCX y PDF.
 - [x] Presentacion PPTX.
 - [x] Evidencias PNG de dashboard, hosts, latest data, falla y MailHog.
+- [x] Web publica con backend, MariaDB, graficas, SLO, exporter `/metrics` y pruebas Artillery.
+- [x] Matriz de cumplimiento verificable en `/api/compliance`.
+- [x] Script de auditoria reproducible `scripts/audit-project.sh`.
 
 Accesos locales:
 

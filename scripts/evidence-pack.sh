@@ -34,6 +34,8 @@ fetch_json summary /api/summary
 fetch_json db-status /api/db/status
 fetch_json slo /api/slo
 fetch_json analytics /api/analytics
+fetch_json charts /api/charts
+fetch_json compliance /api/compliance
 fetch_json incidents /api/incidents
 curl -fsS "$BASE_URL/metrics" -o "$OUT_DIR/metrics.prom"
 printf -- "- /metrics: metrics.prom\n" | tee -a "$OUT_DIR/README.md"
@@ -120,11 +122,13 @@ base = Path("$OUT_DIR")
 summary = json.loads((base / "summary.json").read_text())
 db = json.loads((base / "db-status.json").read_text())
 slo = json.loads((base / "slo.json").read_text())
+compliance = json.loads((base / "compliance.json").read_text())
 print(f"- Version app: {summary['version']}")
 print(f"- DB conectada: {db['connected']}")
 print(f"- Telemetria persistida: {db['telemetryRows']}")
 print(f"- Incidentes abiertos: {db['openIncidents']}")
 print(f"- SLO runtime: {slo['availabilityPercent']}% ({slo['status']})")
+print(f"- Cumplimiento: {compliance['scorePercent']}% ({compliance['ok']}/{compliance['total']})")
 PY
 
 echo "Evidencias guardadas en: $OUT_DIR"

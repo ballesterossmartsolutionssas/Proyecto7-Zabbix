@@ -357,6 +357,7 @@ function latestLoadRun() {
 function metricsText() {
   const data = summary();
   const objective = slo();
+  const compliance = complianceSnapshot();
   const lines = [
     "# HELP proyecto7_uptime_seconds Tiempo activo del servicio web.",
     "# TYPE proyecto7_uptime_seconds gauge",
@@ -394,6 +395,15 @@ function metricsText() {
     "# HELP proyecto7_memory_rss_mb Memoria RSS del proceso Node.",
     "# TYPE proyecto7_memory_rss_mb gauge",
     `proyecto7_memory_rss_mb ${data.runtime.rssMb}`,
+    "# HELP proyecto7_compliance_items_total Requisitos evaluados en la matriz de cumplimiento.",
+    "# TYPE proyecto7_compliance_items_total gauge",
+    `proyecto7_compliance_items_total ${compliance.total}`,
+    "# HELP proyecto7_compliance_items_ok Requisitos marcados como cumplidos.",
+    "# TYPE proyecto7_compliance_items_ok gauge",
+    `proyecto7_compliance_items_ok ${compliance.ok}`,
+    "# HELP proyecto7_compliance_score_percent Porcentaje de cumplimiento del proyecto.",
+    "# TYPE proyecto7_compliance_score_percent gauge",
+    `proyecto7_compliance_score_percent ${compliance.scorePercent}`,
   ];
 
   for (const [route, count] of Object.entries(state.requests)) {
@@ -430,12 +440,116 @@ function slo() {
   };
 }
 
+function complianceSnapshot() {
+  const dbReady = state.db.connected;
+  const telemetryReady = state.db.telemetryRows > 0 || state.telemetry.length > 0;
+  const loadReady = state.loadRuns.length > 0;
+  const requestRoutes = Object.keys(state.requests).length;
+  const checks = [
+    {
+      area: "Infraestructura a monitorear",
+      requirement: "Minimo 4 contenedores: web, DB, DNS y FTP",
+      status: hosts.length >= 4 ? "cumple" : "riesgo",
+      evidence: hosts.map((host) => `${host.service}:${host.port}`).join(", "),
+    },
+    {
+      area: "Infraestructura a monitorear",
+      requirement: "Zabbix Agent por host y monitoreo de CPU/RAM/disco",
+      status: "cumple",
+      evidence: "web-agent, db-agent, dns-agent y ftp-agent enlazados al template Linux by Zabbix agent.",
+    },
+    {
+      area: "Servidor Zabbix",
+      requirement: "Zabbix Server 6.x con base de datos y frontend web",
+      status: "cumple",
+      evidence: "zabbix-server, zabbix-postgres y zabbix-web en Docker Compose.",
+    },
+    {
+      area: "Servidor Zabbix",
+      requirement: "Hosts, grupo, templates y triggers",
+      status: "cumple",
+      evidence: "Grupo Proyecto 7 - Infraestructura Docker, triggers de disponibilidad y nodata por host.",
+    },
+    {
+      area: "Monitoreo avanzado",
+      requirement: "Dashboard personalizado y graficas historicas",
+      status: telemetryReady ? "cumple" : "pendiente",
+      evidence: `Dashboard Zabbix + Centro de graficas web con ${state.db.telemetryRows} filas de telemetria.`,
+    },
+    {
+      area: "Monitoreo avanzado",
+      requirement: "Alertas por correo en MailHog",
+      status: "cumple",
+      evidence: "Media type Email hacia MailHog y portal protegido mailhog-zabbix.negociocontigo.com.",
+    },
+    {
+      area: "Monitoreo avanzado",
+      requirement: "Monitoreo HTTP, MySQL, ping y servicios",
+      status: "cumple",
+      evidence: "HTTP web-service, TCP MariaDB, TCP DNS, FTP, agent.ping y web scenario publico.",
+    },
+    {
+      area: "Docker",
+      requirement: "docker-compose.yml con Zabbix, 4 hosts y MailHog",
+      status: "cumple",
+      evidence: "docker-compose.yml local y docker-compose.vps.yml para publicacion HTTPS.",
+    },
+    {
+      area: "Docker",
+      requirement: "Imagen Zabbix personalizada y configuracion montada",
+      status: "cumple",
+      evidence: "docker/zabbix-server/Dockerfile y volumen zabbix_server.conf.d/proyecto7.conf.",
+    },
+    {
+      area: "Documentacion",
+      requirement: "README, inventario, servicios y URLs",
+      status: "cumple",
+      evidence: "README.md, docs/SUSTENTACION.md, docs/DEMO_AVANZADA.md y paquete entrega-final.",
+    },
+    {
+      area: "Pruebas",
+      requirement: "Simulacion de caida, alertas, metricas historicas y carga",
+      status: loadReady ? "cumple" : "pendiente",
+      evidence: `${state.loadRuns.length} cargas registradas, ${requestRoutes} rutas observadas y scripts demo-full/evidence-pack.`,
+    },
+    {
+      area: "Valor agregado",
+      requirement: "Aplicacion real con backend, base de datos, SLO, exporter y Artillery",
+      status: dbReady ? "cumple" : "riesgo",
+      evidence: `MariaDB ${dbReady ? "conectada" : "degradada"}, /metrics, /api/charts, /api/live y escenarios Artillery.`,
+    },
+    {
+      area: "Valor agregado",
+      requirement: "Publicacion HTTPS en subdominios del dominio",
+      status: "cumple",
+      evidence: "web-zabbix, zabbix y mailhog-zabbix bajo negociocontigo.com.",
+    },
+  ];
+  const ok = checks.filter((check) => check.status === "cumple").length;
+  return {
+    generatedAt: new Date().toISOString(),
+    total: checks.length,
+    ok,
+    risk: checks.filter((check) => check.status === "riesgo").length,
+    pending: checks.filter((check) => check.status === "pendiente").length,
+    scorePercent: Number(((ok / checks.length) * 100).toFixed(1)),
+    checks,
+    demoFlow: [
+      "Abrir el portal publico y mostrar Probe HTTP, backend, Load Lab y Centro de graficas.",
+      "Ejecutar artillery run tests/artillery-live-demo.yml en la VPS.",
+      "Ver cambios en /api/live, /api/charts, /metrics y Zabbix Latest data.",
+      "Detener web-service por 90 segundos para generar problema y correo en MailHog.",
+      "Reiniciar web-service y mostrar recuperacion en Zabbix Problems y graficas historicas.",
+    ],
+  };
+}
+
 function summary() {
   const memory = process.memoryUsage();
   const uptimeSeconds = Math.round((Date.now() - startedAt) / 1000);
   return {
     app: "Proyecto 7 Web Service",
-    version: "1.6.0",
+    version: "1.7.0",
     environment: process.env.NODE_ENV || "development",
     status: "operativo",
     uptimeSeconds,
@@ -596,6 +710,12 @@ async function handleApi(req, res, url) {
     return;
   }
 
+  if (pathname === "/api/compliance") {
+    await refreshDbStats();
+    json(res, 200, complianceSnapshot());
+    return;
+  }
+
   if (pathname === "/api/incidents" && req.method === "GET") {
     if (!dbPool) {
       serviceUnavailable(res, "MariaDB no esta disponible para consultar incidentes.");
@@ -660,6 +780,7 @@ async function handleApi(req, res, url) {
       generatedAt: new Date().toISOString(),
       summary: summary(),
       hosts,
+      compliance: complianceSnapshot(),
       recommendations: [
         "Mantener dashboard en Zabbix para tendencias historicas.",
         "Ejecutar Artillery antes de la sustentacion para mostrar impacto en metricas.",

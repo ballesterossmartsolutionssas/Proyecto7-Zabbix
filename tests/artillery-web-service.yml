@@ -39,6 +39,8 @@ scenarios:
       - get:
           url: "/api/charts"
       - get:
+          url: "/api/compliance"
+      - get:
           url: "/api/incidents"
       - get:
           url: "/metrics"

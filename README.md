@@ -131,6 +131,7 @@ Backend del servicio web:
 - Analitica operativa: `GET /api/analytics`
 - Snapshot vivo para demo: `GET /api/live`
 - Datos para graficas: `GET /api/charts`
+- Matriz de cumplimiento: `GET /api/compliance`
 - Incidentes persistentes: `GET /api/incidents`, `POST /api/incidents`
 - Telemetria sintetica: `POST /api/telemetry`
 - Carga controlada: `GET /api/load/cpu`, `GET /api/load/memory`, `GET /api/load/mixed`, `GET /api/load/burst`
@@ -146,6 +147,7 @@ Zabbix tambien consulta por HTTP Agent:
 - Latencia HTTPS publica del portal `web-zabbix`.
 - Exporter `/metrics`.
 - Estado JSON de MariaDB en `/api/db/status`.
+- Matriz de cumplimiento `/api/compliance`.
 - Escenario web sintetico `Proyecto 7 - recorrido publico` con pasos `Home`, `Health API`, `DB Status`, `SLO` y `Metrics`.
 
 En la VPS:
@@ -277,7 +279,7 @@ bash scripts/live-artillery-demo.sh
 La prueba cubre:
 
 - Navegacion del frontend.
-- Consulta de `/health`, `/api/summary`, `/api/hosts`, `/api/report`, `/api/db/status`, `/api/slo`, `/api/live`, `/api/charts`, `/api/incidents` y `/api/analytics`.
+- Consulta de `/health`, `/api/summary`, `/api/hosts`, `/api/report`, `/api/db/status`, `/api/slo`, `/api/live`, `/api/charts`, `/api/compliance`, `/api/incidents` y `/api/analytics`.
 - Envio de muestras a `/api/telemetry`.
 - Escritura de incidentes en MariaDB con `POST /api/incidents`.
 - Carga controlada sobre `/api/load/mixed`, `/api/load/cpu`, `/api/load/memory` y `/api/load/burst`.
@@ -307,6 +309,15 @@ bash scripts/evidence-pack.sh
 
 El script crea una carpeta en `entrega-final/evidencias/` con JSON de endpoints, metricas Prometheus, resultado de Artillery y ultimos valores leidos desde Zabbix.
 
+Para auditar el cumplimiento del enunciado desde la VPS:
+
+```bash
+cd /root/proyecto7-zabbix
+bash scripts/audit-project.sh
+```
+
+El script genera `entrega-final/auditoria-*/reporte-cumplimiento.md` con validacion de Compose, endpoints publicos, matriz de cumplimiento y objetos principales de Zabbix por API.
+
 La guia de demostracion extendida esta en `docs/DEMO_AVANZADA.md`.
 
 ## Estructura
@@ -329,7 +340,8 @@ Proyecto7-Zabbix/
     provision.ps1
     demo-full.sh
     evidence-pack.sh
-    live-artillery-demo.sh
+  live-artillery-demo.sh
+  audit-project.sh
     provision_zabbix.py
     test-failure.ps1
     verify.ps1

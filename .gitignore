@@ -10,3 +10,4 @@ tmp/
 services/web/node_modules/
 entrega-final/qa/
 entrega-final/Proyecto7_Zabbix_entrega_final.zip
+.playwright-cli/

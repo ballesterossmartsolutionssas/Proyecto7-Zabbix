@@ -23,6 +23,8 @@ scenarios:
           url: "/api/load/burst?n=6&ms=18&kb=24"
       - get:
           url: "/api/live"
+      - get:
+          url: "/api/compliance"
       - post:
           url: "/api/telemetry"
           json:
