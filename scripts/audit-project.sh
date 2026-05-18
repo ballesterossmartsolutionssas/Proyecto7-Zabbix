@@ -118,6 +118,9 @@ else
   record FAIL "Auditoria Zabbix API" "No se pudo consultar API de Zabbix."
 fi
 
+pass="$(grep -c '^| OK |' "$OUT_DIR/reporte-cumplimiento.md" || true)"
+fail="$(grep -c '^| FAIL |' "$OUT_DIR/reporte-cumplimiento.md" || true)"
+
 cat >> "$OUT_DIR/reporte-cumplimiento.md" <<EOF
 
 ## Resumen
