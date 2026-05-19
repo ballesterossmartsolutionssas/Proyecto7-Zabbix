@@ -6,28 +6,29 @@ La division detallada esta en `docs/GUION_SUSTENTACION_20_MIN.md`.
 
 ## Distribucion por integrante
 
-1. Juan Camilo Ballesteros Sierra - 0:00 a 5:00
+1. Luis Felipe Murillo Matallana - 0:00 a 5:00
    - Problema.
    - Objetivo.
+   - Contexto.
+   - Alternativas de solucion.
+   - Entregables.
+
+2. Juan Sebastian Delgado - 5:00 a 10:00
    - Arquitectura general.
    - Docker Compose.
    - Imagen Zabbix personalizada y volumenes.
-
-2. Luis Felipe Murillo Matallana - 5:00 a 10:00
-   - Zabbix Server con PostgreSQL.
-   - Zabbix Web para visualizacion.
-   - Script `scripts/provision_zabbix.py`.
-   - Hosts, grupos, templates, triggers y dashboard.
-   - Backend web y MariaDB.
-
-3. Juan Sebastian Delgado - 10:00 a 15:00
-   - Hosts monitoreados: web, DB, DNS y FTP.
+   - Inventario web, DB, DNS y FTP.
    - Agentes Zabbix.
-   - Checks HTTP, MySQL, DNS, FTP y ping.
+
+3. Daniela Castro Quinones - 10:00 a 15:00
+   - Zabbix Server con PostgreSQL.
+   - Zabbix Web.
+   - Aprovisionamiento por API.
    - CPU, memoria, disco y latest data.
    - Mostrar el `Centro de graficas` con CPU, memoria, disco, rutas y cargas recientes.
+   - MailHog como receptor de alertas.
 
-4. Daniela Castro Quinones - 15:00 a 20:00
+4. Juan Camilo Ballesteros Sierra - 15:00 a 20:00
    - Pruebas minimas.
    - Ejecutar `artillery run tests/artillery-live-demo.yml` con el panel `Load Lab en vivo` abierto.
    - Simular caida de `web-service`.
@@ -50,7 +51,7 @@ Si queda tiempo, usar los ultimos 30 segundos para cerrar con:
 
 ## Reparto por integrante
 
-- Juan Camilo Ballesteros Sierra: arquitectura general y Docker Compose.
-- Luis Felipe Murillo Matallana: configuracion de Zabbix Server, frontend y base de datos.
-- Juan Sebastian Delgado: hosts monitoreados, agentes y checks.
-- Daniela Castro Quinones: pruebas, alertas MailHog y documentacion.
+- Luis Felipe Murillo Matallana: problema, objetivo, contexto y entregables.
+- Juan Sebastian Delgado: arquitectura, Docker Compose, inventario y agentes.
+- Daniela Castro Quinones: Zabbix configurado, dashboard, latest data y alertas.
+- Juan Camilo Ballesteros Sierra: pruebas en vivo, Artillery, caida, MailHog, auditoria y cierre.

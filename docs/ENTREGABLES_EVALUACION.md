@@ -38,10 +38,10 @@ Division por integrante:
 
 | Integrante | Tiempo | Responsabilidad |
 |---|---:|---|
-| Juan Camilo Ballesteros Sierra | 0:00 - 5:00 | Problema, objetivo, arquitectura y Docker Compose |
-| Luis Felipe Murillo Matallana | 5:00 - 10:00 | Zabbix Server, base de datos, frontend y aprovisionamiento |
-| Juan Sebastian Delgado | 10:00 - 15:00 | Hosts, agentes, checks, metricas y graficas |
-| Daniela Castro Quinones | 15:00 - 20:00 | Pruebas, Artillery, caida, MailHog, evidencias y cierre |
+| Luis Felipe Murillo Matallana | 0:00 - 5:00 | Problema, objetivo, contexto y entregables |
+| Juan Sebastian Delgado | 5:00 - 10:00 | Arquitectura, Docker Compose, inventario y agentes |
+| Daniela Castro Quinones | 10:00 - 15:00 | Zabbix configurado, dashboard, latest data y alertas |
+| Juan Camilo Ballesteros Sierra | 15:00 - 20:00 | Pruebas, Artillery, caida, MailHog, evidencias y cierre |
 
 Guion detallado: `docs/GUION_SUSTENTACION_20_MIN.md`.
 

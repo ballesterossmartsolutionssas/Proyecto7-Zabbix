@@ -6,12 +6,12 @@ Objetivo: que cada integrante hable 5 minutos y que la demostracion cubra proble
 
 | Tiempo | Integrante | Bloque | Pantallas principales |
 |---:|---|---|---|
-| 0:00 - 5:00 | Juan Camilo Ballesteros Sierra | Problema, objetivo, arquitectura y Docker Compose | Presentacion, README, diagrama, `docker-compose.yml` |
-| 5:00 - 10:00 | Luis Felipe Murillo Matallana | Zabbix Server, base de datos, frontend y aprovisionamiento | Zabbix UI, `scripts/provision_zabbix.py`, hosts/grupo |
-| 10:00 - 15:00 | Juan Sebastian Delgado | Hosts monitoreados, agentes, checks, metricas y graficas | Zabbix Latest data, dashboard, `web-host`, `db-host`, `dns-host`, `ftp-host` |
-| 15:00 - 20:00 | Daniela Castro Quinones | Pruebas, alertas, Artillery, MailHog, evidencias y cierre | Portal web, Load Lab, MailHog, `/api/compliance`, auditoria |
+| 0:00 - 5:00 | Luis Felipe Murillo Matallana | Problema, objetivo y contexto | Presentacion, informe, README |
+| 5:00 - 10:00 | Juan Sebastian Delgado | Arquitectura, Docker e inventario | Diagrama, `docker-compose.yml`, servicios monitoreados |
+| 10:00 - 15:00 | Daniela Castro Quinones | Zabbix configurado, dashboards y alertas | Zabbix UI, hosts, latest data, MailHog |
+| 15:00 - 20:00 | Juan Camilo Ballesteros Sierra | Demo tecnica: pruebas, Artillery, caida, evidencias y cierre | Portal web, Load Lab, `/api/compliance`, auditoria, Zabbix/MailHog |
 
-## 0:00 - 5:00 Juan Camilo
+## 0:00 - 5:00 Luis Felipe
 
 Mensaje central: el proyecto resuelve la necesidad de observar una infraestructura de servicios antes de que el usuario final reporte la falla.
 
@@ -24,7 +24,23 @@ Mensaje central: el proyecto resuelve la necesidad de observar una infraestructu
    - Usar Docker Compose para que el despliegue sea reproducible.
    - Generar alertas y evidencias historicas.
 
-3. Mostrar arquitectura:
+3. Comparar alternativa:
+   - Prometheus, Nagios, Datadog y Zabbix.
+   - Zabbix se escogio porque integra agentes, frontend, triggers, dashboards y alertas.
+
+4. Mostrar entregables:
+   - Informe IEEE.
+   - Presentacion.
+   - Repositorio GitHub.
+   - README con paso a paso.
+
+Frase de cierre: "Con el problema y el objetivo claros, pasamos a la arquitectura y a los servicios desplegados."
+
+## 5:00 - 10:00 Juan Sebastian
+
+Mensaje central: la solucion esta dockerizada y cumple la infraestructura minima pedida: web, base de datos, DNS y FTP.
+
+1. Mostrar arquitectura:
    - Zabbix Server.
    - PostgreSQL.
    - Zabbix Web.
@@ -32,17 +48,34 @@ Mensaje central: el proyecto resuelve la necesidad de observar una infraestructu
    - Cuatro servicios monitoreados.
    - Agentes Zabbix por host.
 
-4. Mostrar Docker:
+2. Mostrar Docker:
    - `docker-compose.yml`.
    - `docker-compose.vps.yml`.
    - Imagen personalizada `docker/zabbix-server/Dockerfile`.
    - Volumenes de configuracion Zabbix.
 
-Frase de cierre: "Con esto dejamos la base reproducible; ahora se explica como Zabbix queda configurado y automatizado."
+3. Mostrar inventario:
+   - `web-host`: portal HTTP.
+   - `db-host`: MariaDB.
+   - `dns-host`: CoreDNS.
+   - `ftp-host`: VSFTPD.
 
-## 5:00 - 10:00 Luis Felipe
+4. Mostrar agentes:
+   - `web-agent`.
+   - `db-agent`.
+   - `dns-agent`.
+   - `ftp-agent`.
 
-Mensaje central: Zabbix no quedo manual, se aprovisiona por API y queda conectado a base de datos, frontend, triggers y notificaciones.
+5. Explicar red:
+   - Red interna Docker.
+   - Resolucion por nombre de servicio.
+   - Publicacion HTTPS mediante Caddy en la VPS.
+
+Frase de cierre: "Con la infraestructura lista, pasamos a ver como Zabbix la monitorea."
+
+## 10:00 - 15:00 Daniela
+
+Mensaje central: Zabbix quedo configurado con hosts, templates, items, triggers, dashboards y alertas.
 
 1. Mostrar Zabbix Web:
    - URL: `https://zabbix.negociocontigo.com`.
@@ -56,59 +89,29 @@ Mensaje central: Zabbix no quedo manual, se aprovisiona por API y queda conectad
    - `scripts/provision_zabbix.py`.
    - Crea grupo, hosts, items, triggers, dashboard, media type y web scenario.
 
-4. Mostrar configuracion avanzada:
-   - `Exporter /metrics Proyecto 7`.
-   - `Estado MariaDB desde API Proyecto 7`.
-   - Web scenario `Proyecto 7 - recorrido publico`.
-
-5. Mostrar frontend y backend:
-   - Portal: `https://web-zabbix.negociocontigo.com`.
-   - Endpoints: `/health`, `/api/summary`, `/api/db/status`, `/metrics`.
-
-Frase de cierre: "Ya con Zabbix configurado, pasamos a los hosts monitoreados y a las metricas que exige el enunciado."
-
-## 10:00 - 15:00 Juan Sebastian
-
-Mensaje central: se monitorean los cuatro servicios pedidos, con agente, estado de servicio y metricas historicas.
-
-1. Mostrar inventario:
-   - `web-host`: portal HTTP.
-   - `db-host`: MariaDB.
-   - `dns-host`: CoreDNS.
-   - `ftp-host`: VSFTPD.
-
-2. Mostrar agentes:
-   - `web-agent`.
-   - `db-agent`.
-   - `dns-agent`.
-   - `ftp-agent`.
-
-3. Mostrar Latest data:
+4. Mostrar Latest data:
    - `agent.ping`.
    - CPU.
    - Memoria.
    - Disco.
    - Disponibilidad HTTP, MySQL, DNS y FTP.
 
-4. Mostrar graficas:
-   - Graficas historicas en Zabbix.
-   - Centro de graficas del portal: CPU, memoria, disco, rutas, cargas y SLO.
+5. Mostrar dashboards y alertas:
+   - Dashboard Zabbix.
+   - Web scenario `Proyecto 7 - recorrido publico`.
+   - MailHog como receptor de correos de prueba.
 
-5. Explicar triggers:
-   - Servicio no responde.
-   - Host sin datos.
-   - Recorrido publico lento o fallido.
+Frase de cierre: "Ya se vio la plataforma funcionando; Juan Camilo cierra con las pruebas en vivo y el valor agregado."
 
-Frase de cierre: "Con los datos y triggers listos, cerramos demostrando pruebas, carga, caida y alertas."
-
-## 15:00 - 20:00 Daniela
+## 15:00 - 20:00 Juan Camilo
 
 Mensaje central: las pruebas demuestran que la solucion funciona y que va mas alla del requisito minimo.
 
-1. Mostrar portal:
+1. Mostrar portal publico:
    - Load Lab en vivo.
    - Centro de graficas.
    - Matriz de cumplimiento.
+   - Endpoints `/api/live`, `/api/charts`, `/api/compliance`, `/metrics`.
 
 2. Ejecutar Artillery:
 
@@ -155,4 +158,3 @@ Frase final: "El proyecto cumple el despliegue Docker, monitoreo de cuatro servi
 - Si Artillery tarda, seguir hablando mientras corre.
 - Si la caida demora en Zabbix, mostrar evidencias previas y MailHog.
 - Dejar las credenciales abiertas antes de iniciar para no perder tiempo.
-
