@@ -1,6 +1,6 @@
-# Guia de sustentacion - Proyecto 7
+﻿# Guia de sustentacion - Proyecto 7
 
-Tiempo maximo: 20 minutos. Como son cuatro integrantes, cada uno debe hablar 5 minutos.
+Tiempo máximo: 20 minutos. Como son cuatro integrantes, cada uno debe hablar 5 minutos.
 
 La division detallada esta en `docs/GUION_SUSTENTACION_20_MIN.md`.
 
@@ -10,29 +10,29 @@ La division detallada esta en `docs/GUION_SUSTENTACION_20_MIN.md`.
    - Problema.
    - Objetivo.
    - Contexto.
-   - Alternativas de solucion.
+   - Alternativas de solución.
    - Entregables.
 
-2. Juan Sebastian Delgado - 5:00 a 10:00
+2. Juan Sebastián Delgado - 5:00 a 10:00
    - Arquitectura general.
    - Docker Compose.
    - Imagen Zabbix personalizada y volumenes.
    - Inventario web, DB, DNS y FTP.
    - Agentes Zabbix.
 
-3. Daniela Castro Quinones - 10:00 a 15:00
+3. Daniela Castro Quiñones - 10:00 a 15:00
    - Zabbix Server con PostgreSQL.
    - Zabbix Web.
    - Aprovisionamiento por API.
    - CPU, memoria, disco y latest data.
-   - Mostrar el `Centro de graficas` con CPU, memoria, disco, rutas y cargas recientes.
+   - Mostrar el `Centro de gráficas` con CPU, memoria, disco, rutas y cargas recientes.
    - MailHog como receptor de alertas.
 
 4. Juan Camilo Ballesteros Sierra - 15:00 a 20:00
    - Pruebas minimas.
    - Ejecutar `artillery run tests/artillery-live-demo.yml` con el panel `Load Lab en vivo` abierto.
-   - Simular caida de `web-service`.
-   - Mostrar el web scenario `Proyecto 7 - recorrido publico` en Zabbix.
+   - Simular caída de `web-service`.
+   - Mostrar el web scenario `Proyecto 7 - recorrido público` en Zabbix.
    - Ver problema en Zabbix.
    - Ver correo en MailHog.
    - Restaurar servicio y mostrar recuperacion.
@@ -52,6 +52,6 @@ Si queda tiempo, usar los ultimos 30 segundos para cerrar con:
 ## Reparto por integrante
 
 - Luis Felipe Murillo Matallana: problema, objetivo, contexto y entregables.
-- Juan Sebastian Delgado: arquitectura, Docker Compose, inventario y agentes.
-- Daniela Castro Quinones: Zabbix configurado, dashboard, latest data y alertas.
-- Juan Camilo Ballesteros Sierra: pruebas en vivo, Artillery, caida, MailHog, auditoria y cierre.
+- Juan Sebastián Delgado: arquitectura, Docker Compose, inventario y agentes.
+- Daniela Castro Quiñones: Zabbix configurado, dashboard, latest data y alertas.
+- Juan Camilo Ballesteros Sierra: pruebas en vivo, Artillery, caída, MailHog, auditoria y cierre.

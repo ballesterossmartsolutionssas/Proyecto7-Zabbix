@@ -1,23 +1,23 @@
-# Guion de sustentacion - 20 minutos
+﻿# Guion de sustentacion - 20 minutos
 
-Objetivo: que cada integrante hable 5 minutos y que la demostracion cubra problema, diseno, implementacion, pruebas y valor agregado sin repetir.
+Objetivo: que cada integrante hable 5 minutos y que la demostracion cubra problema, diseño, implementación, pruebas y valor agregado sin repetir.
 
 ## Reparto rapido
 
 | Tiempo | Integrante | Bloque | Pantallas principales |
 |---:|---|---|---|
 | 0:00 - 5:00 | Luis Felipe Murillo Matallana | Problema, objetivo y contexto | Presentacion, informe, README |
-| 5:00 - 10:00 | Juan Sebastian Delgado | Arquitectura, Docker e inventario | Diagrama, `docker-compose.yml`, servicios monitoreados |
-| 10:00 - 15:00 | Daniela Castro Quinones | Zabbix configurado, dashboards y alertas | Zabbix UI, hosts, latest data, MailHog |
-| 15:00 - 20:00 | Juan Camilo Ballesteros Sierra | Demo tecnica: pruebas, Artillery, caida, evidencias y cierre | Portal web, Load Lab, `/api/compliance`, auditoria, Zabbix/MailHog |
+| 5:00 - 10:00 | Juan Sebastián Delgado | Arquitectura, Docker e inventario | Diagrama, `docker-compose.yml`, servicios monitoreados |
+| 10:00 - 15:00 | Daniela Castro Quiñones | Zabbix configurado, dashboards y alertas | Zabbix UI, hosts, latest data, MailHog |
+| 15:00 - 20:00 | Juan Camilo Ballesteros Sierra | Demo tecnica: pruebas, Artillery, caída, evidencias y cierre | Portal web, Load Lab, `/api/compliance`, auditoria, Zabbix/MailHog |
 
 ## 0:00 - 5:00 Luis Felipe
 
 Mensaje central: el proyecto resuelve la necesidad de observar una infraestructura de servicios antes de que el usuario final reporte la falla.
 
 1. Presentar el problema:
-   - Una red con web, base de datos, DNS y FTP puede fallar por caidas de servicio, saturacion o conectividad.
-   - Sin monitoreo centralizado, la deteccion es manual y lenta.
+   - Una red con web, base de datos, DNS y FTP puede fallar por caídas de servicio, saturacion o conectividad.
+   - Sin monitoreo centralizado, la detección es manual y lenta.
 
 2. Presentar objetivo:
    - Implementar monitoreo con Zabbix 6.x.
@@ -36,9 +36,9 @@ Mensaje central: el proyecto resuelve la necesidad de observar una infraestructu
 
 Frase de cierre: "Con el problema y el objetivo claros, pasamos a la arquitectura y a los servicios desplegados."
 
-## 5:00 - 10:00 Juan Sebastian
+## 5:00 - 10:00 Juan Sebastián
 
-Mensaje central: la solucion esta dockerizada y cumple la infraestructura minima pedida: web, base de datos, DNS y FTP.
+Mensaje central: la solución esta dockerizada y cumple la infraestructura minima pedida: web, base de datos, DNS y FTP.
 
 1. Mostrar arquitectura:
    - Zabbix Server.
@@ -52,7 +52,7 @@ Mensaje central: la solucion esta dockerizada y cumple la infraestructura minima
    - `docker-compose.yml`.
    - `docker-compose.vps.yml`.
    - Imagen personalizada `docker/zabbix-server/Dockerfile`.
-   - Volumenes de configuracion Zabbix.
+   - Volumenes de configuración Zabbix.
 
 3. Mostrar inventario:
    - `web-host`: portal HTTP.
@@ -68,7 +68,7 @@ Mensaje central: la solucion esta dockerizada y cumple la infraestructura minima
 
 5. Explicar red:
    - Red interna Docker.
-   - Resolucion por nombre de servicio.
+   - Resolución por nombre de servicio.
    - Publicacion HTTPS mediante Caddy en la VPS.
 
 Frase de cierre: "Con la infraestructura lista, pasamos a ver como Zabbix la monitorea."
@@ -98,18 +98,18 @@ Mensaje central: Zabbix quedo configurado con hosts, templates, items, triggers,
 
 5. Mostrar dashboards y alertas:
    - Dashboard Zabbix.
-   - Web scenario `Proyecto 7 - recorrido publico`.
+   - Web scenario `Proyecto 7 - recorrido público`.
    - MailHog como receptor de correos de prueba.
 
 Frase de cierre: "Ya se vio la plataforma funcionando; Juan Camilo cierra con las pruebas en vivo y el valor agregado."
 
 ## 15:00 - 20:00 Juan Camilo
 
-Mensaje central: las pruebas demuestran que la solucion funciona y que va mas alla del requisito minimo.
+Mensaje central: las pruebas demuestran que la solución funciona y que va mas alla del requisito mínimo.
 
-1. Mostrar portal publico:
+1. Mostrar portal público:
    - Load Lab en vivo.
-   - Centro de graficas.
+   - Centro de gráficas.
    - Matriz de cumplimiento.
    - Endpoints `/api/live`, `/api/charts`, `/api/compliance`, `/metrics`.
 
@@ -120,9 +120,9 @@ Mensaje central: las pruebas demuestran que la solucion funciona y que va mas al
    artillery run tests/artillery-live-demo.yml
    ```
 
-   Mostrar que suben requests, telemetria, cargas y SLO.
+   Mostrar que suben requests, telemetría, cargas y SLO.
 
-3. Simular caida:
+3. Simular caída:
 
    ```bash
    docker compose -f docker-compose.vps.yml stop web-service
@@ -149,12 +149,12 @@ Mensaje central: las pruebas demuestran que la solucion funciona y que va mas al
    - Auditoria: `0` fallas.
    - Artillery: `0` usuarios fallidos.
 
-Frase final: "El proyecto cumple el despliegue Docker, monitoreo de cuatro servicios, dashboards, alertas, metricas historicas y agrega una aplicacion real con pruebas de carga y auditoria verificable."
+Frase final: "El proyecto cumple el despliegue Docker, monitoreo de cuatro servicios, dashboards, alertas, métricas historicas y agrega una aplicación real con pruebas de carga y auditoria verificable."
 
 ## Reglas para no pasarse de tiempo
 
 - Cada integrante debe cerrar en el minuto 5 exacto.
 - No explicar codigo linea por linea; mostrar archivo y resumir su funcion.
 - Si Artillery tarda, seguir hablando mientras corre.
-- Si la caida demora en Zabbix, mostrar evidencias previas y MailHog.
+- Si la caída demora en Zabbix, mostrar evidencias previas y MailHog.
 - Dejar las credenciales abiertas antes de iniciar para no perder tiempo.

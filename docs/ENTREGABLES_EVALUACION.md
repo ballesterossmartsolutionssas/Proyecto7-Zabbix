@@ -1,4 +1,4 @@
-# Entregables y evaluacion - Proyecto 7
+﻿# Entregables y evaluacion - Proyecto 7
 
 Fecha de entrega: martes 19 de mayo de 2026.
 
@@ -8,17 +8,17 @@ Integrantes:
 
 - Juan Camilo Ballesteros Sierra
 - Luis Felipe Murillo Matallana
-- Juan Sebastian Delgado
-- Daniela Castro Quinones
+- Juan Sebastián Delgado
+- Daniela Castro Quiñones
 
 ## Entregables a subir al curso
 
 | Entregable solicitado | Archivo o enlace final | Estado |
 |---|---|---|
-| Informe IEEE, maximo 7 paginas | `entrega-final/Informe_IEEE_Proyecto7_Zabbix.pdf` | Listo |
+| Informe IEEE, máximo 7 páginas | `entrega-final/Informe_IEEE_Proyecto7_Zabbix.pdf` | Listo |
 | Informe editable | `entrega-final/Informe_IEEE_Proyecto7_Zabbix.docx` | Listo |
 | Diapositivas en repositorio GitHub | `entrega-final/Presentacion_Proyecto7_Zabbix.pptx` | Listo |
-| Repositorio GitHub con configuracion y aprovisionamiento | `https://github.com/ballesterossmartsolutionssas/Proyecto7-Zabbix` | Listo |
+| Repositorio GitHub con configuración y aprovisionamiento | `https://github.com/ballesterossmartsolutionssas/Proyecto7-Zabbix` | Listo |
 | README con paso a paso, inventario y URLs | `README.md` | Listo |
 | Evidencias de pruebas | `entrega-final/evidencias/` y `entrega-final/auditoria-*/` | Listo |
 | Paquete comprimido de respaldo | `entrega-final/Proyecto7_Zabbix_entrega_final.zip` | Listo |
@@ -27,10 +27,10 @@ Integrantes:
 
 | Componente | URL | Credenciales |
 |---|---|---|
-| Portal monitoreado | `https://web-zabbix.negociocontigo.com` | Publico |
+| Portal monitoreado | `https://web-zabbix.negociocontigo.com` | Público |
 | Zabbix Web | `https://zabbix.negociocontigo.com` | `Admin / MonitorUAO2026!` |
 | MailHog | `https://mailhog-zabbix.negociocontigo.com/login` | `admin / MailUAO2026!` |
-| Repositorio | `https://github.com/ballesterossmartsolutionssas/Proyecto7-Zabbix` | Publico segun visibilidad del repo |
+| Repositorio | `https://github.com/ballesterossmartsolutionssas/Proyecto7-Zabbix` | Público segun visibilidad del repo |
 
 ## Paso a paso para sustentar en 20 minutos
 
@@ -39,13 +39,13 @@ Division por integrante:
 | Integrante | Tiempo | Responsabilidad |
 |---|---:|---|
 | Luis Felipe Murillo Matallana | 0:00 - 5:00 | Problema, objetivo, contexto y entregables |
-| Juan Sebastian Delgado | 5:00 - 10:00 | Arquitectura, Docker Compose, inventario y agentes |
-| Daniela Castro Quinones | 10:00 - 15:00 | Zabbix configurado, dashboard, latest data y alertas |
-| Juan Camilo Ballesteros Sierra | 15:00 - 20:00 | Pruebas, Artillery, caida, MailHog, evidencias y cierre |
+| Juan Sebastián Delgado | 5:00 - 10:00 | Arquitectura, Docker Compose, inventario y agentes |
+| Daniela Castro Quiñones | 10:00 - 15:00 | Zabbix configurado, dashboard, latest data y alertas |
+| Juan Camilo Ballesteros Sierra | 15:00 - 20:00 | Pruebas, Artillery, caída, MailHog, evidencias y cierre |
 
 Guion detallado: `docs/GUION_SUSTENTACION_20_MIN.md`.
 
-1. Abrir el portal publico y mostrar inventario, backend, Load Lab, Centro de graficas y Matriz de cumplimiento.
+1. Abrir el portal público y mostrar inventario, backend, Load Lab, Centro de gráficas y Matriz de cumplimiento.
 2. Abrir Zabbix y mostrar el grupo `Proyecto 7 - Infraestructura Docker`.
 3. Mostrar hosts `web-host`, `db-host`, `dns-host` y `ftp-host` con items de CPU, memoria, disco, ping y servicios.
 4. Ejecutar carga controlada:
@@ -56,7 +56,7 @@ Guion detallado: `docs/GUION_SUSTENTACION_20_MIN.md`.
    ```
 
 5. Mientras corre la carga, mostrar cambios en `/api/live`, `/api/charts`, `/metrics` y Zabbix Latest data.
-6. Simular caida:
+6. Simular caída:
 
    ```bash
    docker compose -f docker-compose.vps.yml stop web-service
@@ -72,7 +72,7 @@ Guion detallado: `docs/GUION_SUSTENTACION_20_MIN.md`.
    bash scripts/audit-project.sh
    ```
 
-## Comandos de validacion antes de entregar
+## Comandos de validación antes de entregar
 
 ```bash
 cd /root/proyecto7-zabbix
@@ -84,6 +84,6 @@ artillery run tests/artillery-smoke.yml
 Resultado esperado:
 
 - Matriz `/api/compliance`: `100%`.
-- Auditoria: `0` validaciones fallidas.
+- Auditoria: `0` validaciónes fallidas.
 - Artillery smoke: `0` usuarios fallidos.
-- Zabbix: hosts disponibles, triggers configurados y graficas historicas con datos.
+- Zabbix: hosts disponibles, triggers configurados y gráficas historicas con datos.

@@ -2,7 +2,7 @@
 
 - [x] docker-compose.yml con Zabbix Server, Zabbix Web, base de datos, MailHog y 4 servicios monitoreados.
 - [x] Imagen Zabbix personalizada con Dockerfile.
-- [x] Archivos de configuracion Zabbix montados como volumen.
+- [x] Archivos de configuración Zabbix montados como volumen.
 - [x] Hosts monitoreados: web, DB, DNS y FTP.
 - [x] Triggers de disponibilidad configurados.
 - [x] Alertas por correo validadas en MailHog.
@@ -10,11 +10,11 @@
 - [x] Informe IEEE en DOCX y PDF.
 - [x] Presentacion PPTX.
 - [x] Evidencias PNG de dashboard, hosts, latest data, falla y MailHog.
-- [x] Web publica con backend, MariaDB, graficas, SLO, exporter `/metrics` y pruebas Artillery.
+- [x] Web pública con backend, MariaDB, gráficas, SLO, exporter `/metrics` y pruebas Artillery.
 - [x] Matriz de cumplimiento verificable en `/api/compliance`.
-- [x] Script de auditoria reproducible `scripts/audit-project.sh`.
-- [x] Guia de entregables y evaluacion `docs/ENTREGABLES_EVALUACION.md`.
-- [x] Matriz de rubrica `docs/MATRIZ_RUBRICA.md`.
+- [x] Script de auditoría reproducible `scripts/audit-project.sh`.
+- [x] Guía de entregables y evaluación `docs/ENTREGABLES_EVALUACION.md`.
+- [x] Matriz de rúbrica `docs/MATRIZ_RUBRICA.md`.
 
 Accesos locales:
 
@@ -23,7 +23,7 @@ Accesos locales:
 - Clave: zabbix
 - MailHog: http://localhost:8025
 
-Accesos publicos:
+Accesos públicos:
 
 - Portal: https://web-zabbix.negociocontigo.com
 - Zabbix: https://zabbix.negociocontigo.com
