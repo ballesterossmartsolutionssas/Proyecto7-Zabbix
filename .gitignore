@@ -9,5 +9,7 @@ zabbix-db-data/
 tmp/
 services/web/node_modules/
 entrega-final/qa/
+entrega-final/evidencias/
+entrega-final/auditoria-*/
 entrega-final/Proyecto7_Zabbix_entrega_final.zip
 .playwright-cli/
