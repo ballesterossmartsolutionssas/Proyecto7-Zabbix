@@ -32,13 +32,14 @@ Esta demo muestra valor agregado sobre el requerimiento base: monitoreo sintetic
 4. Ejecutar carga:
 
    ```bash
-   npx artillery run tests/artillery-smoke.yml
+   npx --yes artillery@2.0.20 run tests/artillery-smoke.yml
    ```
 
    Para mostrar carga en vivo con el panel del portal abierto:
 
    ```bash
    cd /root/proyecto7-zabbix
+   npm install -g artillery@2.0.20
    artillery run tests/artillery-live-demo.yml
    ```
 

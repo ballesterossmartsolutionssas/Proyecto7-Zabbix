@@ -262,13 +262,20 @@ El repo incluye `tests/artillery-web-service.yml` para generar trafico real cont
 Ejecutar desde una maquina con Node.js:
 
 ```bash
-npx artillery run tests/artillery-web-service.yml
+npx --yes artillery@2.0.20 run tests/artillery-web-service.yml
 ```
 
 Para una validacion rapida antes de la sustentacion:
 
 ```bash
-npx artillery run tests/artillery-smoke.yml
+npx --yes artillery@2.0.20 run tests/artillery-smoke.yml
+```
+
+En la VPS quedo instalada la version estable usada en pruebas:
+
+```bash
+npm install -g artillery@2.0.20
+artillery version
 ```
 
 Para una demo en vivo, abrir el portal y correr en la VPS:

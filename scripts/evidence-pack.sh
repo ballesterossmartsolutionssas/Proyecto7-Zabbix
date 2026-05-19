@@ -49,14 +49,14 @@ if command -v artillery >/dev/null 2>&1; then
     printf -- "- Resultado texto: artillery-smoke.txt\n- Resultado JSON: artillery-smoke.json\n" | tee -a "$OUT_DIR/README.md"
   fi
 elif command -v npx >/dev/null 2>&1; then
-  if npx --yes artillery@2.0.23 run tests/artillery-smoke.yml --output "$OUT_DIR/artillery-smoke.json" > "$OUT_DIR/artillery-smoke.txt" 2>&1; then
+  if npx --yes artillery@2.0.20 run tests/artillery-smoke.yml --output "$OUT_DIR/artillery-smoke.json" > "$OUT_DIR/artillery-smoke.txt" 2>&1; then
     cat "$OUT_DIR/artillery-smoke.txt"
     artillery_done=1
     printf -- "- Resultado texto: artillery-smoke.txt\n- Resultado JSON: artillery-smoke.json\n" | tee -a "$OUT_DIR/README.md"
   fi
 elif command -v docker >/dev/null 2>&1; then
   if docker run --rm -v "$PWD:/work" -w /work node:22-alpine \
-    sh -lc "npx --yes artillery@2.0.23 run tests/artillery-smoke.yml --output '$OUT_DIR/artillery-smoke.json'" \
+    sh -lc "npx --yes artillery@2.0.20 run tests/artillery-smoke.yml --output '$OUT_DIR/artillery-smoke.json'" \
     > "$OUT_DIR/artillery-smoke.txt" 2>&1; then
     cat "$OUT_DIR/artillery-smoke.txt"
     artillery_done=1

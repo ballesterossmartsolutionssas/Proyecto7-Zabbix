@@ -24,10 +24,12 @@ curl -fsS "$BASE_URL/api/db/status" | python3 -c "import json,sys; d=json.load(s
 curl -fsS "$BASE_URL/metrics" | sed -n '1,14p'
 
 section "Artillery smoke"
-if command -v npx >/dev/null 2>&1; then
-  npx --yes artillery@latest run tests/artillery-smoke.yml
+if command -v artillery >/dev/null 2>&1; then
+  artillery run tests/artillery-smoke.yml
+elif command -v npx >/dev/null 2>&1; then
+  npx --yes artillery@2.0.20 run tests/artillery-smoke.yml
 else
-  echo "npx no esta instalado en este host. Ejecuta el smoke desde una maquina con Node.js."
+  echo "Artillery no esta instalado. Instala con: npm install -g artillery@2.0.20"
 fi
 
 section "Carga sintetica directa"
