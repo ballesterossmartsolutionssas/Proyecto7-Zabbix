@@ -451,6 +451,7 @@ def create_pptx():
     prs.slide_width = PptInches(13.333)
     prs.slide_height = PptInches(7.5)
     blank = prs.slide_layouts[6]
+    total_slides = 17
 
     INK = (10, 24, 32)
     TEAL = (34, 197, 170)
@@ -528,7 +529,7 @@ def create_pptx():
         color = (142, 159, 170) if dark else MUTED
         line(slide, 0.55, 7.03, 12.75, 7.03, (42, 66, 77) if dark else LINE, 0.7)
         text(slide, "Proyecto 7 - Monitoreo de infraestructura con Zabbix", 0.55, 7.13, 5.2, 0.18, 7.5, color)
-        text(slide, f"{num:02d}/14", 12.0, 7.13, 0.7, 0.18, 7.5, color, align=PP_ALIGN.RIGHT)
+        text(slide, f"{num:02d}/{total_slides}", 12.0, 7.13, 0.7, 0.18, 7.5, color, align=PP_ALIGN.RIGHT)
 
     def screenshot(slide, path, x, y, w, h=None, border=True):
         if not path.exists():
@@ -789,6 +790,59 @@ def create_pptx():
     screenshot(s, FILES["mailhog"], 8.5, 4.45, 3.65, 1.6, True)
     text(s, "Cierre: Zabbix detecta, MailHog muestra, Artillery presiona y la auditoría confirma.", 0.9, 6.25, 7.2, 0.42, 18, TEAL, True)
     footer(s, 14, True)
+
+    # 15 alternatives
+    s = prs.slides.add_slide(blank)
+    bg(s)
+    title(s, "alternativas", "Zabbix se eligió por equilibrio entre control, alertas y despliegue local.", 15)
+    alternatives = [
+        ("Nagios Core", "Checks maduros y muchos plugins.", "UI y dashboards limitados; menor automatización moderna.", AMBER),
+        ("Prometheus + Grafana", "Métricas modernas y visualización fuerte.", "Requiere Alertmanager, exporters y más integración.", CYAN),
+        ("Datadog", "Suite SaaS completa con APM y logs.", "Costo, dependencia externa y datos fuera del laboratorio.", RED),
+        ("Zabbix 6.x", "Agentes, API, triggers, dashboards, histórico y correo integrados.", "Más configuración inicial, pero reproducible con scripts.", TEAL),
+    ]
+    for i, (name, strength, limit, accent) in enumerate(alternatives):
+        y = 1.72 + i * 1.05
+        rect(s, 0.82, y, 2.35, 0.72, WHITE, LINE, True)
+        text(s, name, 1.02, y + 0.16, 1.92, 0.23, 12, accent, True)
+        rect(s, 3.38, y, 3.9, 0.72, (245, 248, 250), LINE, True)
+        text(s, strength, 3.58, y + 0.14, 3.45, 0.28, 10.5, INK)
+        rect(s, 7.55, y, 4.55, 0.72, (250, 247, 244), LINE, True)
+        text(s, limit, 7.75, y + 0.14, 4.05, 0.28, 10.5, INK)
+    label_box(s, "Decisión", "Zabbix permite cumplir el enunciado sin SaaS pago: monitoreo de hosts, servicios, triggers, dashboards, histórico, alertas y API en Docker Compose.", 0.85, 6.03, 11.25, 0.78, TEAL)
+    footer(s, 15)
+
+    # 16 discussion
+    s = prs.slides.add_slide(blank)
+    bg(s, (242, 247, 249))
+    title(s, "discusión", "La prueba importante no es instalar Zabbix; es cerrar el ciclo operativo.", 16)
+    label_box(s, "Qué probamos", "Carga real con Artillery, caída controlada, detección en Zabbix, correo MailHog, recuperación y métricas históricas.", 0.85, 1.9, 3.55, 1.42, TEAL)
+    label_box(s, "Qué aprendimos", "Monitorear no es solo saber si un contenedor vive: también hay que medir servicio, backend, DB, SLO y rutas bajo presión.", 4.85, 1.9, 3.55, 1.42, CYAN)
+    label_box(s, "Limitación honesta", "El SLO del portal es de laboratorio y vive en memoria del proceso; Zabbix conserva el histórico real de eventos e items.", 8.85, 1.9, 3.55, 1.42, AMBER)
+    text(s, "Conclusión", 0.9, 4.18, 2.0, 0.25, 11, MUTED, True)
+    text(s, "El proyecto cumple los requisitos base y los amplía con una aplicación real observable: frontend, backend, MariaDB, /metrics, SLO, analíticas, Artillery y matriz 13/13.", 0.9, 4.62, 10.8, 0.82, 24, INK, True)
+    footer(s, 16)
+
+    # 17 references
+    s = prs.slides.add_slide(blank)
+    bg(s, INK)
+    title(s, "referencias", "Las decisiones se apoyan en documentación oficial y herramientas reproducibles.", 17, True)
+    refs = [
+        ("Zabbix Documentation 6.0", "zabbix.com/documentation/6.0", TEAL),
+        ("Docker Compose", "docs.docker.com/compose", CYAN),
+        ("MailHog", "github.com/mailhog/MailHog", AMBER),
+        ("Artillery Docs", "artillery.io/docs", LIME),
+        ("PostgreSQL / MariaDB", "postgresql.org/docs + mariadb.org/documentation", CYAN),
+        ("Caddy Automatic HTTPS", "caddyserver.com/docs/automatic-https", TEAL),
+    ]
+    for i, (name, url, accent) in enumerate(refs):
+        x = 0.9 + (i % 2) * 5.75
+        y = 1.85 + (i // 2) * 1.18
+        rect(s, x, y, 5.05, 0.76, (16, 40, 51), (48, 73, 84), True)
+        text(s, name, x + 0.2, y + 0.14, 3.1, 0.22, 11.5, accent, True)
+        text(s, url, x + 0.2, y + 0.43, 4.55, 0.18, 8.5, (202, 213, 219))
+    text(s, "Entregables: informe IEEE, presentación, repositorio GitHub, README, scripts de aprovisionamiento, Docker Compose, evidencias y demo pública HTTPS.", 0.95, 5.82, 10.9, 0.5, 17, WHITE, True)
+    footer(s, 17, True)
 
     out = OUT / "Presentacion_Proyecto7_Zabbix.pptx"
     prs.save(out)
