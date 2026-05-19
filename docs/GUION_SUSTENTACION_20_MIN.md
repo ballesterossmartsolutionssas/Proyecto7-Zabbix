@@ -1,160 +1,187 @@
-﻿# Guion de sustentacion - 20 minutos
+# Guion de sustentación - 20 minutos
 
-Objetivo: que cada integrante hable 5 minutos y que la demostracion cubra problema, diseño, implementación, pruebas y valor agregado sin repetir.
+Este guion está pensado para enviarlo al grupo y que cada integrante sepa exactamente qué decir, qué diapositivas tomar y qué pantalla mostrar. La idea es que todos hablen, pero que Juan Camilo cierre con la parte más técnica: pruebas, Artillery, caída controlada, alertas y evidencias.
 
-## Reparto rapido
+## Mensaje corto para el grupo
 
-| Tiempo | Integrante | Bloque | Pantallas principales |
-|---:|---|---|---|
-| 0:00 - 5:00 | Luis Felipe Murillo Matallana | Problema, objetivo y contexto | Presentacion, informe, README |
-| 5:00 - 10:00 | Juan Sebastián Delgado | Arquitectura, Docker e inventario | Diagrama, `docker-compose.yml`, servicios monitoreados |
-| 10:00 - 15:00 | Daniela Castro Quiñones | Zabbix configurado, dashboards y alertas | Zabbix UI, hosts, latest data, MailHog |
-| 15:00 - 20:00 | Juan Camilo Ballesteros Sierra | Demo tecnica: pruebas, Artillery, caída, evidencias y cierre | Portal web, Load Lab, `/api/compliance`, auditoria, Zabbix/MailHog |
+Equipo, la sustentación queda dividida así:
+
+- Luis Felipe: minutos 0 a 5. Problema, objetivo, alternativas y entregables.
+- Juan Sebastián: minutos 5 a 10. Arquitectura Docker, servicios monitoreados e inventario.
+- Daniela: minutos 10 a 15. Zabbix configurado, hosts, latest data, dashboard y alertas.
+- Juan Camilo: minutos 15 a 20. Demo técnica en vivo: portal, Artillery, caída del servicio, MailHog, auditoría y cierre.
+
+Cada uno debe estudiar su bloque, no leer todo literal y cerrar con la frase de transición para que el siguiente entre rápido. No explicar código línea por línea; solo mostrar archivo/pantalla y decir qué función cumple.
+
+## Reparto por diapositivas
+
+| Tiempo | Integrante | Diapositivas | Tema |
+|---:|---|---:|---|
+| 0:00 - 5:00 | Luis Felipe Murillo Matallana | 1 a 3 | Portada, problema y objetivo |
+| 5:00 - 10:00 | Juan Sebastián Delgado | 4 a 6 | Arquitectura, inventario e implementación Docker |
+| 10:00 - 15:00 | Daniela Castro Quiñones | 7 a 9 | Dashboard, caída esperada y alertas |
+| 15:00 - 20:00 | Juan Camilo Ballesteros Sierra | 10 a 14 | Carga, resultados, entregables, conclusiones y demo |
 
 ## 0:00 - 5:00 Luis Felipe
 
-Mensaje central: el proyecto resuelve la necesidad de observar una infraestructura de servicios antes de que el usuario final reporte la falla.
+Mensaje central: el proyecto resuelve la falta de visibilidad sobre una infraestructura con varios servicios que pueden fallar sin aviso.
 
-1. Presentar el problema:
-   - Una red con web, base de datos, DNS y FTP puede fallar por caídas de servicio, saturacion o conectividad.
-   - Sin monitoreo centralizado, la detección es manual y lenta.
+Diapositivas: 1, 2 y 3.
 
-2. Presentar objetivo:
-   - Implementar monitoreo con Zabbix 6.x.
-   - Usar Docker Compose para que el despliegue sea reproducible.
-   - Generar alertas y evidencias historicas.
+Guion sugerido:
 
-3. Comparar alternativa:
-   - Prometheus, Nagios, Datadog y Zabbix.
-   - Zabbix se escogio porque integra agentes, frontend, triggers, dashboards y alertas.
+1. "Buenos días. Nosotros somos el grupo del Proyecto 7: Monitoreo de infraestructura con Zabbix. El objetivo fue implementar una plataforma capaz de monitorear servicios reales desplegados con Docker."
+2. "El problema es que una infraestructura puede tener el portal web funcionando parcialmente, pero fallar en base de datos, DNS o FTP. Si no hay monitoreo, la detección depende de revisión manual o del reporte del usuario."
+3. "Por eso se planteó una solución con Zabbix 6.x, agentes, base de datos, Docker Compose y alertas por correo. Además, agregamos una aplicación real con backend, métricas, gráficas, SLO y pruebas de carga."
+4. "Revisamos alternativas como Nagios, Prometheus y Datadog. Escogimos Zabbix porque integra agentes, frontend, triggers, dashboards, media types y API de aprovisionamiento en una sola plataforma."
+5. "Como entregables dejamos informe IEEE, diapositivas, repositorio GitHub, README, evidencias y una demo pública con HTTPS."
 
-4. Mostrar entregables:
-   - Informe IEEE.
-   - Presentacion.
-   - Repositorio GitHub.
-   - README con paso a paso.
+Pantallas que puede mostrar:
 
-Frase de cierre: "Con el problema y el objetivo claros, pasamos a la arquitectura y a los servicios desplegados."
+- Diapositivas 1 a 3.
+- README del repositorio si el profesor pregunta por entregables.
+
+Frase de transición:
+
+"Con el problema y el objetivo claros, Juan Sebastián continúa con la arquitectura y la infraestructura desplegada."
 
 ## 5:00 - 10:00 Juan Sebastián
 
-Mensaje central: la solución esta dockerizada y cumple la infraestructura minima pedida: web, base de datos, DNS y FTP.
+Mensaje central: la solución cumple la infraestructura mínima exigida y queda totalmente empaquetada con Docker Compose.
 
-1. Mostrar arquitectura:
-   - Zabbix Server.
-   - PostgreSQL.
-   - Zabbix Web.
-   - MailHog.
-   - Cuatro servicios monitoreados.
-   - Agentes Zabbix por host.
+Diapositivas: 4, 5 y 6.
 
-2. Mostrar Docker:
-   - `docker-compose.yml`.
-   - `docker-compose.vps.yml`.
-   - Imagen personalizada `docker/zabbix-server/Dockerfile`.
-   - Volumenes de configuración Zabbix.
+Guion sugerido:
 
-3. Mostrar inventario:
-   - `web-host`: portal HTTP.
-   - `db-host`: MariaDB.
-   - `dns-host`: CoreDNS.
-   - `ftp-host`: VSFTPD.
+1. "La arquitectura está compuesta por Zabbix Server, PostgreSQL, Zabbix Web, MailHog y cuatro servicios monitoreados: web, base de datos, DNS y FTP."
+2. "Cada servicio tiene su agente Zabbix correspondiente. Esto permite monitorear disponibilidad del host y métricas básicas como CPU, memoria y disco."
+3. "El inventario en Zabbix queda así: `web-host` para HTTP, `db-host` para MariaDB, `dns-host` para CoreDNS y `ftp-host` para VSFTPD."
+4. "Todo está definido en `docker-compose.yml`. Para la VPS usamos `docker-compose.vps.yml`, que deja internos los puertos sensibles y publica solo lo necesario mediante Caddy con HTTPS."
+5. "También se cumple el requisito de imagen personalizada, porque el servidor Zabbix se construye desde `docker/zabbix-server/Dockerfile`, y las configuraciones se montan como volúmenes."
 
-4. Mostrar agentes:
-   - `web-agent`.
-   - `db-agent`.
-   - `dns-agent`.
-   - `ftp-agent`.
+Pantallas que puede mostrar:
 
-5. Explicar red:
-   - Red interna Docker.
-   - Resolución por nombre de servicio.
-   - Publicacion HTTPS mediante Caddy en la VPS.
+- Diapositivas 4 a 6.
+- `docker-compose.yml`.
+- `docker-compose.vps.yml`.
+- `docker/zabbix-server/Dockerfile`.
 
-Frase de cierre: "Con la infraestructura lista, pasamos a ver como Zabbix la monitorea."
+Frase de transición:
+
+"Ya con la infraestructura montada, Daniela muestra cómo quedó configurado Zabbix para observar esos servicios."
 
 ## 10:00 - 15:00 Daniela
 
-Mensaje central: Zabbix quedo configurado con hosts, templates, items, triggers, dashboards y alertas.
+Mensaje central: Zabbix no solo está instalado; quedó configurado con hosts, items, triggers, dashboard y alertas.
 
-1. Mostrar Zabbix Web:
-   - URL: `https://zabbix.negociocontigo.com`.
-   - Grupo: `Proyecto 7 - Infraestructura Docker`.
+Diapositivas: 7, 8 y 9.
 
-2. Explicar base de datos:
-   - PostgreSQL para Zabbix.
-   - MariaDB para la app monitoreada.
+Guion sugerido:
 
-3. Explicar aprovisionamiento:
-   - `scripts/provision_zabbix.py`.
-   - Crea grupo, hosts, items, triggers, dashboard, media type y web scenario.
+1. "En Zabbix se creó el grupo `Proyecto 7 - Infraestructura Docker`, donde están registrados los cuatro hosts monitoreados."
+2. "El aprovisionamiento se automatizó con `scripts/provision_zabbix.py`. Ese script crea hosts, items, triggers, dashboard, media type de correo y web scenario."
+3. "En Latest data se pueden revisar `agent.ping`, CPU, memoria, disco y checks de disponibilidad para HTTP, MySQL/MariaDB, DNS y FTP."
+4. "El dashboard permite ver el estado general de la infraestructura y las métricas históricas. Esto cumple la prueba de dashboard en tiempo real y evidencia actualización dinámica."
+5. "Para alertas usamos MailHog como servidor SMTP de laboratorio. Así se valida que Zabbix genera correos de problema y recuperación sin enviar pruebas a correos reales."
+6. "También existe un canal SMTP real del dominio como propuesta de escalamiento para un ambiente más parecido a producción."
 
-4. Mostrar Latest data:
-   - `agent.ping`.
-   - CPU.
-   - Memoria.
-   - Disco.
-   - Disponibilidad HTTP, MySQL, DNS y FTP.
+Pantallas que puede mostrar:
 
-5. Mostrar dashboards y alertas:
-   - Dashboard Zabbix.
-   - Web scenario `Proyecto 7 - recorrido público`.
-   - MailHog como receptor de correos de prueba.
+- Diapositivas 7 a 9.
+- Zabbix: `https://zabbix.negociocontigo.com`.
+- Hosts del grupo del proyecto.
+- Latest data.
+- MailHog: `https://mailhog-zabbix.negociocontigo.com/login`.
 
-Frase de cierre: "Ya se vio la plataforma funcionando; Juan Camilo cierra con las pruebas en vivo y el valor agregado."
+Credenciales útiles:
+
+- Zabbix: `Admin / MonitorUAO2026!`
+- MailHog: `admin / MailUAO2026!`
+
+Frase de transición:
+
+"Con Zabbix y las alertas listas, Juan Camilo cierra con las pruebas en vivo y el valor agregado del proyecto."
 
 ## 15:00 - 20:00 Juan Camilo
 
-Mensaje central: las pruebas demuestran que la solución funciona y que va mas alla del requisito mínimo.
+Mensaje central: las pruebas demuestran el funcionamiento completo y el valor agregado por encima del mínimo: portal real, backend, gráficas, Artillery, auditoría y cumplimiento trazable.
 
-1. Mostrar portal público:
-   - Load Lab en vivo.
-   - Centro de gráficas.
-   - Matriz de cumplimiento.
-   - Endpoints `/api/live`, `/api/charts`, `/api/compliance`, `/metrics`.
+Diapositivas: 10, 11, 12, 13 y 14.
 
-2. Ejecutar Artillery:
+Guion sugerido:
 
-   ```bash
-   cd /root/proyecto7-zabbix
-   artillery run tests/artillery-live-demo.yml
-   ```
+1. "Para ir más allá del requisito, el servicio web no es un index estático. Es una aplicación Node.js con frontend, backend, MariaDB, endpoints JSON, telemetría, incidentes, gráficas, SLO y exporter `/metrics`."
+2. "Aquí se ve el portal público: `https://web-zabbix.negociocontigo.com`. Desde este portal podemos revisar métricas, carga, cumplimiento y estado de la base de datos."
+3. "La matriz `/api/compliance` cruza los requisitos del enunciado contra evidencias concretas. Esto ayuda a sustentar que se cumplió Docker Compose, cuatro hosts, MailHog, dashboard, triggers, pruebas y documentación."
+4. "Ahora ejecuto Artillery para generar tráfico real contra el frontend y la API. Esto permite observar comportamiento bajo carga, no solamente disponibilidad básica."
 
-   Mostrar que suben requests, telemetría, cargas y SLO.
+Comando de Artillery:
 
-3. Simular caída:
+```bash
+cd /root/proyecto7-zabbix
+artillery run tests/artillery-live-demo.yml
+```
 
-   ```bash
-   docker compose -f docker-compose.vps.yml stop web-service
-   sleep 90
-   docker compose -f docker-compose.vps.yml start web-service
-   ```
+Mientras corre Artillery:
 
-   Mostrar problema y recuperacion en Zabbix.
+- Mostrar Load Lab en el portal.
+- Mostrar rutas golpeadas.
+- Mostrar SLO y gráficas.
+- Decir: "Si el tráfico aumenta y los endpoints responden, podemos diferenciar disponibilidad normal de degradación por carga."
 
-4. Mostrar MailHog:
-   - URL: `https://mailhog-zabbix.negociocontigo.com/login`.
-   - Usuario: `admin`.
-   - Clave: `MailUAO2026!`.
-   - Evidenciar correo de problema y recuperacion.
+5. "La segunda prueba es simular la caída del servicio web. Zabbix debe detectar que HTTP no responde, abrir un problema y luego registrar recuperación cuando se restaure."
 
-5. Cierre con auditoria:
+Comandos de caída:
 
-   ```bash
-   bash scripts/audit-project.sh
-   ```
+```bash
+cd /root/proyecto7-zabbix
+docker compose -f docker-compose.vps.yml stop web-service
+sleep 90
+docker compose -f docker-compose.vps.yml start web-service
+```
 
-   Resultado esperado:
-   - Matriz `/api/compliance`: `100%`.
-   - Auditoria: `0` fallas.
-   - Artillery: `0` usuarios fallidos.
+Si Zabbix tarda:
 
-Frase final: "El proyecto cumple el despliegue Docker, monitoreo de cuatro servicios, dashboards, alertas, métricas historicas y agrega una aplicación real con pruebas de carga y auditoria verificable."
+- Mostrar evidencia previa en `entrega-final/evidencias/06_zabbix_falla_web_activa.png`.
+- Mostrar MailHog con correos de problema y recuperación.
+- Decir: "Zabbix trabaja por intervalos de chequeo; por eso la detección puede tardar unos segundos, pero el evento queda en histórico."
 
-## Reglas para no pasarse de tiempo
+6. "Finalmente ejecuto la auditoría automática. Esta auditoría valida Compose, endpoints públicos, matriz de cumplimiento y objetos principales de Zabbix."
 
-- Cada integrante debe cerrar en el minuto 5 exacto.
-- No explicar codigo linea por linea; mostrar archivo y resumir su funcion.
-- Si Artillery tarda, seguir hablando mientras corre.
-- Si la caída demora en Zabbix, mostrar evidencias previas y MailHog.
-- Dejar las credenciales abiertas antes de iniciar para no perder tiempo.
+Comando de auditoría:
+
+```bash
+bash scripts/audit-project.sh
+```
+
+Resultado esperado:
+
+- Auditoría con 0 fallas.
+- Artillery con 0 usuarios fallidos.
+- `/api/compliance` mostrando cumplimiento completo.
+- Problema y recuperación visibles en Zabbix/MailHog.
+
+Frase final:
+
+"En conclusión, el proyecto cumple los requisitos: Docker Compose, mínimo cuatro hosts monitoreados, Zabbix Server con base de datos, frontend web, triggers, dashboards, alertas por correo, pruebas de caída y métricas históricas. Además, agregamos una aplicación real con backend, gráficas, SLO, `/metrics`, Artillery y auditoría reproducible para sustentar el valor agregado."
+
+## Orden recomendado de ventanas antes de presentar
+
+Abrir antes de empezar para no perder tiempo:
+
+- Diapositivas: `entrega-final/Presentacion_Proyecto7_Zabbix.pptx`.
+- Portal: `https://web-zabbix.negociocontigo.com`.
+- Zabbix: `https://zabbix.negociocontigo.com`.
+- MailHog: `https://mailhog-zabbix.negociocontigo.com/login`.
+- Terminal SSH en `/root/proyecto7-zabbix`.
+- Repositorio GitHub: `https://github.com/ballesterossmartsolutionssas/Proyecto7-Zabbix`.
+
+## Reglas para que salga limpio
+
+- Nadie debe pasarse de 5 minutos.
+- No leer el informe; hablar con base en las diapositivas.
+- No explicar código línea por línea.
+- Si una demo tarda, mostrar evidencia previa y seguir con la explicación.
+- Juan Camilo debe tener la terminal lista antes de iniciar.
+- Dejar Zabbix y MailHog logueados antes de presentar.
+- Si preguntan por correos reales, responder: "MailHog captura correos de laboratorio; para producción dejamos documentado el canal SMTP del dominio como escalamiento."

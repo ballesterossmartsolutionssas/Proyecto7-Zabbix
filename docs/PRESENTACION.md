@@ -1,4 +1,8 @@
-﻿# Presentacion - Proyecto 7
+# Presentación - Proyecto 7
+
+Archivo principal: `entrega-final/Presentacion_Proyecto7_Zabbix.pptx`.
+
+La presentación final tiene 14 diapositivas y está organizada para una sustentación de 20 minutos. La distribución recomendada es: Luis Felipe presenta problema y objetivo; Juan Sebastián presenta arquitectura e implementación Docker; Daniela presenta Zabbix, dashboard y alertas; Juan Camilo cierra con pruebas, Artillery, resultados, entregables y demo en vivo.
 
 ## Diapositiva 1 - Portada
 
@@ -13,86 +17,84 @@ Integrantes:
 
 ## Diapositiva 2 - Problema
 
-Una infraestructura con varios servicios puede fallar sin aviso. Se necesita visibilidad sobre disponibilidad, recursos, estado de servicios y alertas para reducir el tiempo de detección.
+- Servicios distribuidos pueden fallar sin aviso.
+- La revisión manual tarda y no deja historial.
+- Se necesita visibilidad, alertas y evidencia para sustentación.
 
 ## Diapositiva 3 - Objetivo
 
-Implementar una plataforma de monitoreo con Zabbix 6.x, Docker Compose, cuatro servicios monitoreados y notificaciones de alerta mediante MailHog. Como valor agregado, publicar la solución con HTTPS y monitorear una aplicación real con backend, base de datos, gráficas, SLO y pruebas de carga.
+- Desplegar Zabbix 6.x en Docker Compose.
+- Monitorear web, base de datos, DNS y FTP.
+- Validar triggers, dashboards, históricos y alertas por correo.
+- Agregar portal HTTPS con backend, gráficas, SLO y carga Artillery.
 
-## Diapositiva 4 - Arquitectura
+## Diapositiva 4 - Arquitectura Docker
 
-Componentes:
+- Zabbix Server + PostgreSQL + Zabbix Web.
+- MailHog simula SMTP para notificaciones.
+- Red interna `proyecto7-monitoring` para resolución por nombre.
+- Caddy publica subdominios HTTPS en la VPS.
 
-- Zabbix Server.
-- PostgreSQL.
-- Zabbix Web.
-- MailHog.
-- Servicios HTTP, MySQL/MariaDB, DNS y FTP.
-- Agentes Zabbix.
-- Portal público `web-zabbix.negociocontigo.com`.
-- Backend Node.js con MariaDB, `/metrics`, `/api/charts`, `/api/live` y `/api/compliance`.
+## Diapositiva 5 - Inventario monitoreado
 
-## Diapositiva 5 - Servicios monitoreados
+- `web-host`: portal Node.js HTTP.
+- `db-host`: MariaDB puerto 3306.
+- `dns-host`: CoreDNS puerto 53.
+- `ftp-host`: VSFTPD puerto 21.
 
-| Host | Servicio | Puerto |
-|---|---|---|
-| web-host | HTTP | 80 |
-| db-host | MySQL/MariaDB | 3306 |
-| dns-host | DNS | 53 |
-| ftp-host | FTP | 21 |
+## Diapositiva 6 - Implementación
 
-## Diapositiva 6 - Implementación Docker
+- `docker-compose.yml` define todos los componentes.
+- Zabbix Server usa imagen personalizada con Dockerfile.
+- Las configuraciones Zabbix se montan como volumen.
+- `provision_zabbix.py` registra hosts, items, triggers y web scenario por API.
 
-Todo se despliega con `docker compose up -d`. Los servicios comparten la red interna `proyecto7-monitoring` y la base de datos de Zabbix usa volumen persistente. El servidor usa imagen personalizada construida desde `docker/zabbix-server/Dockerfile`.
+## Diapositiva 7 - Dashboard y datos
 
-## Diapositiva 7 - Configuración Zabbix
+- Latest data muestra disponibilidad y métricas.
+- Centro de gráficas muestra CPU, memoria, disco, rutas y carga.
+- La matriz de cumplimiento `/api/compliance` cruza requisitos contra evidencia.
 
-El script de aprovisionamiento crea grupo de hosts, hosts, items de disponibilidad, triggers de falla y media type de correo apuntando a MailHog. Tambien se montan configuraciónes Zabbix como volumen para servidor y agentes.
+## Diapositiva 8 - Prueba de caída
 
-## Diapositiva 8 - Dashboard y métricas
+- Se detiene `web-service` durante la demostración.
+- Zabbix marca el trigger HTTP `web-service` no responde.
+- Al restaurar el contenedor, el evento queda resuelto.
 
-Mostrar en Zabbix:
+## Diapositiva 9 - Alertas con MailHog
 
-- Disponibilidad de agentes.
-- CPU, memoria y disco.
-- Estado de HTTP, MySQL, DNS y FTP.
-- Gráficas historicas.
+- MailHog recibe correos de problema y recuperación.
+- El portal `mailhog-zabbix` tiene login propio.
+- También existe canal SMTP real del dominio para escalamiento.
 
-## Diapositiva 9 - Prueba de caída
+## Diapositiva 10 - Pruebas de carga
 
-Comando:
-
-```powershell
-.\scripts\test-failure.ps1 -Service web-service -Seconds 90
-```
-
-Resultado esperado: aparece problema en Zabbix y se resuelve al restaurar el contenedor.
-
-## Diapositiva 10 - Alertas con MailHog
-
-MailHog recibe los correos de prueba enviados por Zabbix, permitiendo validar notificaciones sin usar un proveedor externo.
+- Artillery genera tráfico real contra frontend y API.
+- El backend registra telemetría e incidentes en MariaDB.
+- Zabbix observa `/metrics`, estado de DB y web scenario público.
 
 ## Diapositiva 11 - Resultados
 
-La solución detecta servicios caidos, centraliza eventos, muestra datos históricos y permite demostrar recuperacion despues de una falla. La auditoria automatica valida la matriz de cumplimiento del enunciado y Artillery evidencia comportamiento bajo carga.
+- Contenedores principales saludables.
+- Cuatro servicios con check de disponibilidad activo.
+- Alertas generadas y recuperadas durante la prueba.
+- Auditoría automática con 0 fallas esperadas.
 
-## Diapositiva 12 - Valor agregado
-
-- Despliegue HTTPS en VPS.
-- Portal con frontend y backend real.
-- Persistencia de telemetría e incidentes en MariaDB.
-- Gráficas operativas y SLO.
-- Pruebas Artillery en vivo.
-- Matriz de cumplimiento `/api/compliance`.
-- Auditoria reproducible `scripts/audit-project.sh`.
-
-## Diapositiva 13 - Entregables
+## Diapositiva 12 - Entregables
 
 - Informe IEEE: `entrega-final/Informe_IEEE_Proyecto7_Zabbix.pdf`.
-- Presentacion: `entrega-final/Presentacion_Proyecto7_Zabbix.pptx`.
-- Repositorio GitHub con Docker Compose, scripts y README.
-- Evidencias: `entrega-final/evidencias/` y `entrega-final/auditoria-*/`.
+- Diapositivas: `entrega-final/Presentacion_Proyecto7_Zabbix.pptx`.
+- Repositorio GitHub con README, Compose, scripts y evidencias.
 
-## Diapositiva 14 - Conclusiones
+## Diapositiva 13 - Conclusiones
 
-Zabbix permite monitorear infraestructura dockerizada de forma reproducible. Los triggers y dashboards facilitan respuesta ante incidentes y análisis del comportamiento de servicios.
+- Zabbix centraliza observabilidad operativa.
+- Docker Compose hace el despliegue reproducible.
+- El portal público, Artillery y `/api/compliance` elevan la solución sobre el mínimo.
+
+## Diapositiva 14 - Demo en vivo
+
+- Abrir `web-zabbix.negociocontigo.com`.
+- Ejecutar `artillery run tests/artillery-live-demo.yml`.
+- Simular caída con `docker compose -f docker-compose.vps.yml stop web-service`.
+- Cerrar con `bash scripts/audit-project.sh`.
