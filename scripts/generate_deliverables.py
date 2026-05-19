@@ -158,7 +158,7 @@ def create_docx():
     abstract.add_run(
         "Este proyecto implementa una plataforma de monitoreo de infraestructura con Zabbix 6.x desplegada completamente en contenedores Docker. "
         "La solucion monitorea servicios web, base de datos, DNS y FTP, registra metricas de disponibilidad y recursos, define triggers de falla y valida el envio de alertas mediante MailHog. "
-        "Adicionalmente se publico el entorno en una VPS con HTTPS y se implemento una aplicacion real con frontend, backend Node.js, MariaDB, graficas operativas, SLO, exporter de metricas y pruebas de carga con Artillery."
+        "Adicionalmente se publico el entorno en una VPS con HTTPS y se implemento una aplicacion real con frontend, backend Node.js, MariaDB, graficas operativas, SLO, exporter de metricas, matriz de cumplimiento y pruebas de carga con Artillery."
     )
 
     keywords = doc.add_paragraph()
@@ -177,6 +177,10 @@ def create_docx():
         "Zabbix centraliza metricas, eventos y alertas, por lo que es adecuado para demostrar monitoreo de servicios en un entorno reproducible con Docker. "
         "El alcance se amplio con un portal publico que permite observar carga, telemetria y cumplimiento del enunciado durante la sustentacion.",
     )
+    add_body(
+        doc,
+        "El objetivo fue construir una solucion que no solo evidenciara puertos abiertos, sino que permitiera comprobar estado de hosts, recursos, servicios, alertas, historicos y comportamiento bajo carga controlada.",
+    )
 
     add_heading(doc, "II. Contexto del problema")
     add_body(
@@ -184,18 +188,40 @@ def create_docx():
         "Una red compuesta por servicios HTTP, base de datos, DNS y FTP puede presentar fallas por caida de procesos, saturacion de recursos o perdida de conectividad. "
         "Sin una plataforma de monitoreo, la deteccion depende de revision manual. El proyecto busca evidenciar estado en tiempo real, historial, alertas automaticas y respuesta del sistema bajo carga controlada.",
     )
+    add_body(
+        doc,
+        "El escenario simulado representa una infraestructura comun: un usuario consume un portal web, el portal depende de base de datos, la red requiere resolucion DNS y existen servicios auxiliares de transferencia. Una falla en cualquiera de estos puntos debe quedar visible para operacion.",
+    )
 
     add_heading(doc, "III. Alternativas de solucion")
     add_body(
         doc,
         "Se evaluaron alternativas como Nagios, Prometheus, Datadog y Zabbix. Zabbix fue seleccionado porque integra servidor, agentes, frontend web, triggers, dashboards y notificaciones sin depender de una plataforma externa paga.",
     )
+    alt_table = doc.add_table(rows=1, cols=3)
+    alt_table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    for cell, text in zip(alt_table.rows[0].cells, ["Herramienta", "Fortaleza", "Limitacion para el proyecto"]):
+        set_cell_text(cell, text, True)
+        set_cell_shading(cell, "D9EAD3")
+    for row in [
+        ("Nagios", "Disponibilidad y plugins", "Menos integrado para dashboards e historicos modernos"),
+        ("Prometheus", "Metricas y series de tiempo", "Requiere integrar Alertmanager/Grafana"),
+        ("Datadog", "Suite gestionada completa", "Servicio externo pago"),
+        ("Zabbix", "Agentes, triggers, UI, alertas y API", "Requiere configuracion inicial cuidadosa"),
+    ]:
+        cells = alt_table.add_row().cells
+        for cell, text in zip(cells, row):
+            set_cell_text(cell, text)
 
     add_heading(doc, "IV. Diseno de la solucion")
     add_body(
         doc,
         "La arquitectura incluye Zabbix Server, PostgreSQL, Zabbix Web, MailHog y cuatro servicios monitoreados. Todos los componentes se conectan mediante la red Docker proyecto7-monitoring. "
         "Los agentes reportan disponibilidad y Zabbix Server ejecuta checks simples para validar el estado de los puertos de servicio. En la VPS, Caddy publica Zabbix, MailHog y el portal web mediante subdominios HTTPS.",
+    )
+    add_body(
+        doc,
+        "El servicio web monitoreado se diseno como una aplicacion observable: expone salud, resumen operativo, estado de base de datos, telemetria, incidentes, carga controlada, graficas, SLO y matriz de cumplimiento. Esto permite observar comportamiento funcional, no solo conectividad.",
     )
 
     table = doc.add_table(rows=1, cols=3)
@@ -226,6 +252,10 @@ def create_docx():
         "El script de aprovisionamiento usa la API JSON-RPC de Zabbix para crear el grupo de hosts, items, triggers, dashboard, escenario web y configuracion de correo hacia MailHog. "
         "El servicio web expone endpoints JSON, /metrics, /api/charts y /api/compliance para demostrar monitoreo avanzado.",
     )
+    add_body(
+        doc,
+        "En la VPS se usa docker-compose.vps.yml para mantener internos los puertos de servicio y publicar solamente las interfaces necesarias mediante Caddy. MailHog se protege con un gate de autenticacion y Zabbix conserva los historicos en PostgreSQL.",
+    )
     add_figure(doc, FILES["latest"], "Fig. 2. Datos recientes de disponibilidad y metricas.")
 
     add_heading(doc, "VI. Pruebas")
@@ -233,6 +263,10 @@ def create_docx():
         doc,
         "Se validaron cuatro escenarios minimos: dashboard en tiempo real, simulacion de caida del servicio web, envio de alertas a MailHog y consulta de datos historicos. "
         "Tambien se ejecutaron pruebas con Artillery contra frontend, API, base de datos y endpoints de carga; la auditoria automatica reviso Compose, endpoints publicos, matriz de cumplimiento y objetos principales de Zabbix.",
+    )
+    add_body(
+        doc,
+        "La prueba smoke en produccion genero 96 solicitudes, 0 usuarios fallidos y p95 aproximado de 23.8 ms. La auditoria automatica reporto 27 validaciones OK y 0 fallidas, incluyendo endpoints publicos, Zabbix API y matriz de cumplimiento.",
     )
     add_figure(doc, FILES["failure"], "Fig. 3. Problema activo durante la simulacion de caida.")
     add_figure(doc, FILES["mailhog_failure"], "Fig. 4. Correos de alerta y recuperacion recibidos en MailHog.")
@@ -243,6 +277,10 @@ def create_docx():
         "Los checks de servicio regresan 1 cuando el puerto responde y 0 cuando no responde. Los triggers permiten convertir cambios de estado en eventos visibles y notificaciones. "
         "MailHog facilita probar el flujo de correo sin exponer cuentas reales y el canal SMTP real del dominio demuestra escalamiento externo. "
         "Las pruebas de carga relacionan trafico, latencia, SLO, escrituras en MariaDB y graficas historicas.",
+    )
+    add_body(
+        doc,
+        "La principal diferencia frente a una instalacion basica es que la aplicacion monitoreada produce datos propios. Esto permite discutir degradacion, escritura en base de datos, rutas mas consultadas y disponibilidad calculada, aspectos mas cercanos a una operacion real.",
     )
 
     add_heading(doc, "VIII. Conclusiones")
@@ -298,17 +336,29 @@ def create_pdf():
         Paragraph("Proyecto 7: Monitoreo de infraestructura con Zabbix", styles["TitleCenter"]),
         Paragraph("<br/>".join(TEAM), styles["Author"]),
         Spacer(1, 0.12 * inch),
-        Paragraph("<b>Resumen - </b>Este proyecto implementa una plataforma de monitoreo con Zabbix 6.x, Docker Compose, cuatro servicios monitoreados y alertas validadas con MailHog. La solucion se publico en VPS con HTTPS e incorpora backend Node.js, MariaDB, graficas, SLO, exporter de metricas y pruebas Artillery.", styles["IEEEBody"]),
+        Paragraph("<b>Resumen - </b>Este proyecto implementa una plataforma de monitoreo con Zabbix 6.x, Docker Compose, cuatro servicios monitoreados y alertas validadas con MailHog. La solucion se publico en VPS con HTTPS e incorpora backend Node.js, MariaDB, graficas, SLO, exporter de metricas, matriz de cumplimiento y pruebas Artillery.", styles["IEEEBody"]),
         Paragraph("<b>Palabras clave - </b>Zabbix, Docker, monitoreo, alertas, MailHog, Artillery.", styles["IEEEBody"]),
         Spacer(1, 0.12 * inch),
     ]
     sections = [
-        ("I. Introduccion", "Las infraestructuras telematicas requieren observabilidad para detectar fallas y reducir tiempos de indisponibilidad. Zabbix centraliza metricas, eventos y alertas en un entorno reproducible."),
-        ("II. Contexto", "La red evaluada contiene servicios HTTP, base de datos, DNS y FTP. La deteccion manual de fallas no escala; por ello se implementa monitoreo con eventos, notificaciones y pruebas de carga."),
-        ("III. Diseno", "La arquitectura usa Zabbix Server, PostgreSQL, Zabbix Web, MailHog, agentes Zabbix y un portal publico con backend Node.js. Todos los servicios se conectan mediante Docker Compose y la VPS publica subdominios HTTPS."),
+        ("I. Introduccion", "Las infraestructuras telematicas requieren observabilidad para detectar fallas, analizar disponibilidad y reducir tiempos de indisponibilidad. El objetivo fue construir una solucion que evidenciara estado de hosts, recursos, servicios, alertas, historicos y comportamiento bajo carga controlada."),
+        ("II. Contexto del problema", "La red evaluada contiene servicios HTTP, base de datos, DNS y FTP. Sin monitoreo, la deteccion depende de revision manual y no queda historial para analisis. La solucion debe responder si el host esta activo, si el servicio responde, si hay consumo anormal y si la alerta llega por correo."),
+        ("III. Alternativas de solucion", "Se compararon Nagios, Prometheus, Datadog y Zabbix. Zabbix fue elegido porque integra agentes, servidor, frontend, base de datos, triggers, dashboards, web scenarios, media types y API de aprovisionamiento en una sola plataforma abierta."),
+        ("IV. Diseno de la solucion", "La arquitectura usa Zabbix Server, PostgreSQL, Zabbix Web, MailHog, cuatro servicios monitoreados y agentes Zabbix. El portal publico agrega backend Node.js, MariaDB, endpoints JSON, /metrics, /api/charts, /api/live y /api/compliance. En la VPS, Caddy publica subdominios HTTPS."),
     ]
     for title, body in sections:
         story += [Paragraph(title, styles["IEEEHead"]), Paragraph(body, styles["IEEEBody"])]
+
+    alt = [["Herramienta", "Fortaleza", "Limitacion"], ["Nagios", "Checks y plugins", "Menos integrado para graficas modernas"], ["Prometheus", "Metricas y series de tiempo", "Requiere Alertmanager/Grafana"], ["Datadog", "Suite gestionada", "Servicio externo pago"], ["Zabbix", "Agentes, UI, triggers y alertas", "Mayor configuracion inicial"]]
+    alt_tbl = Table(alt, colWidths=[1.2 * inch, 2.0 * inch, 2.5 * inch])
+    alt_tbl.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#D9EAD3")),
+        ("GRID", (0, 0), (-1, -1), 0.3, colors.HexColor("#9CA3AF")),
+        ("FONTNAME", (0, 0), (-1, 0), "Times-Bold"),
+        ("FONTSIZE", (0, 0), (-1, -1), 7.5),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+    ]))
+    story += [Spacer(1, 0.06 * inch), alt_tbl, Spacer(1, 0.08 * inch)]
 
     data = [["Host", "Servicio", "Check"], ["web-host", "Node.js web", "HTTP 80"], ["db-host", "MariaDB", "TCP 3306"], ["dns-host", "CoreDNS", "TCP 53"], ["ftp-host", "VSFTPD", "FTP 21"]]
     tbl = Table(data, colWidths=[1.4 * inch, 1.4 * inch, 2.0 * inch])
@@ -327,13 +377,18 @@ def create_pdf():
         ("mailhog_failure", "Fig. 4. Alertas recibidas en MailHog."),
     ]:
         if FILES[key].exists():
-            story += [KeepTogether([rl_img(FILES[key], 6.0 * inch), Paragraph(caption, styles["Caption"])])]
+            story += [KeepTogether([rl_img(FILES[key], 5.75 * inch), Paragraph(caption, styles["Caption"])])]
 
     story += [
-        Paragraph("IV. Pruebas y resultados", styles["IEEEHead"]),
-        Paragraph("La prueba de caida detuvo web-service, generando evento en Zabbix y correos de problema/recuperacion. Los checks de HTTP, MySQL, DNS y FTP retornaron valor 1 en estado normal. Artillery genero trafico contra frontend, API, MariaDB y endpoints de carga controlada.", styles["IEEEBody"]),
-        Paragraph("V. Conclusiones", styles["IEEEHead"]),
-        Paragraph("La solucion cumple los requerimientos: despliegue dockerizado, minimo cuatro hosts monitoreados, dashboards, triggers, alertas y evidencia historica. El portal publico, SLO, exporter /metrics y matriz /api/compliance agregan valor para la sustentacion.", styles["IEEEBody"]),
+        Paragraph("V. Implementacion", styles["IEEEHead"]),
+        Paragraph("El despliegue se empaqueta con docker-compose.yml para entorno local y docker-compose.vps.yml para publicacion. Zabbix Server usa una imagen personalizada y monta configuraciones como volumen. El script provision_zabbix.py crea grupo, hosts, items, triggers, dashboard, media type y web scenario mediante API JSON-RPC.", styles["IEEEBody"]),
+        Paragraph("La aplicacion web expone endpoints para salud, resumen, base de datos, telemetria, incidentes, carga controlada, graficas, SLO, cumplimiento y metricas estilo Prometheus. Esto permite observar comportamiento funcional, no solo puertos abiertos.", styles["IEEEBody"]),
+        Paragraph("VI. Pruebas", styles["IEEEHead"]),
+        Paragraph("Se validaron dashboard en tiempo real, caida controlada, envio de alertas, metricas historicas y carga con Artillery. En produccion, el smoke test genero 96 solicitudes, 0 usuarios fallidos y p95 aproximado de 23.8 ms. La auditoria automatica reporto 27 validaciones OK y 0 fallidas.", styles["IEEEBody"]),
+        Paragraph("VII. Discusion de las pruebas", styles["IEEEHead"]),
+        Paragraph("La prueba de caida confirma el flujo completo: falla, problema en Zabbix, alerta en MailHog, recuperacion y registro historico. Las pruebas de carga permiten diferenciar caida total de degradacion por trafico, mientras /metrics y /api/db/status amplian el monitoreo mas alla de conectividad basica.", styles["IEEEBody"]),
+        Paragraph("VIII. Conclusiones", styles["IEEEHead"]),
+        Paragraph("La solucion cumple los requerimientos: despliegue dockerizado, minimo cuatro hosts monitoreados, dashboards, triggers, alertas y evidencia historica. El portal publico, backend transaccional, SLO, exporter /metrics, Artillery y matriz /api/compliance agregan valor para la sustentacion y trazabilidad frente a la rubrica.", styles["IEEEBody"]),
         Paragraph("Referencias", styles["IEEEHead"]),
         Paragraph("[1] Zabbix Documentation. [2] Docker Documentation. [3] MailHog GitHub. [4] Artillery Documentation. [5] Caddy Documentation.", styles["IEEEBody"]),
     ]
