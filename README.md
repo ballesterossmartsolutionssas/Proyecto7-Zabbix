@@ -13,6 +13,20 @@ Implementar una plataforma de monitoreo de infraestructura con Zabbix 6.x, Docke
 
 Como valor agregado, el host `web-service` no es solo una pagina estatica: es una aplicacion Node.js con frontend, backend, endpoints JSON, recepcion de telemetria sintetica, persistencia en MariaDB, gestion de incidentes y rutas de carga controlada para ejecutar pruebas con Artillery.
 
+## Entregables de la semana 16
+
+Fecha de entrega: martes 19 de mayo de 2026.
+
+| Entregable solicitado | Ubicacion |
+|---|---|
+| Informe IEEE, maximo 7 paginas | `entrega-final/Informe_IEEE_Proyecto7_Zabbix.pdf` y `.docx` |
+| Diapositivas de la solucion | `entrega-final/Presentacion_Proyecto7_Zabbix.pptx` |
+| Repositorio GitHub con configuracion y aprovisionamiento | `https://github.com/ballesterossmartsolutionssas/Proyecto7-Zabbix` |
+| README con paso a paso, inventario, servicios y URLs | `README.md` |
+| Evidencias y auditoria | `entrega-final/evidencias/`, `entrega-final/auditoria-*/`, `docs/ENTREGABLES_EVALUACION.md` |
+
+La matriz contra la rubrica esta documentada en `docs/MATRIZ_RUBRICA.md` y tambien se expone en vivo en `https://web-zabbix.negociocontigo.com/api/compliance`.
+
 ## Arquitectura
 
 ```mermaid

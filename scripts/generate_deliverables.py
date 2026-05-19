@@ -1,4 +1,6 @@
 from pathlib import Path
+import shutil
+import subprocess
 from zipfile import ZipFile, ZIP_DEFLATED
 
 from docx import Document
@@ -155,14 +157,15 @@ def create_docx():
     r.bold = True
     abstract.add_run(
         "Este proyecto implementa una plataforma de monitoreo de infraestructura con Zabbix 6.x desplegada completamente en contenedores Docker. "
-        "La solucion monitorea servicios web, base de datos, DNS y FTP, registra metricas de disponibilidad y recursos, define triggers de falla y valida el envio de alertas mediante MailHog."
+        "La solucion monitorea servicios web, base de datos, DNS y FTP, registra metricas de disponibilidad y recursos, define triggers de falla y valida el envio de alertas mediante MailHog. "
+        "Adicionalmente se publico el entorno en una VPS con HTTPS y se implemento una aplicacion real con frontend, backend Node.js, MariaDB, graficas operativas, SLO, exporter de metricas y pruebas de carga con Artillery."
     )
 
     keywords = doc.add_paragraph()
     keywords.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     r = keywords.add_run("Palabras clave - ")
     r.bold = True
-    keywords.add_run("Zabbix, Docker Compose, monitoreo, alertas, MailHog, infraestructura.")
+    keywords.add_run("Zabbix, Docker Compose, monitoreo, alertas, MailHog, Artillery, infraestructura.")
 
     doc.add_section(WD_SECTION.CONTINUOUS)
     set_two_columns(doc.sections[-1])
@@ -171,14 +174,15 @@ def create_docx():
     add_body(
         doc,
         "Las infraestructuras telematicas requieren observabilidad para detectar fallas, analizar disponibilidad y reducir tiempos de indisponibilidad. "
-        "Zabbix centraliza metricas, eventos y alertas, por lo que es adecuado para demostrar monitoreo de servicios en un entorno reproducible con Docker.",
+        "Zabbix centraliza metricas, eventos y alertas, por lo que es adecuado para demostrar monitoreo de servicios en un entorno reproducible con Docker. "
+        "El alcance se amplio con un portal publico que permite observar carga, telemetria y cumplimiento del enunciado durante la sustentacion.",
     )
 
     add_heading(doc, "II. Contexto del problema")
     add_body(
         doc,
         "Una red compuesta por servicios HTTP, base de datos, DNS y FTP puede presentar fallas por caida de procesos, saturacion de recursos o perdida de conectividad. "
-        "Sin una plataforma de monitoreo, la deteccion depende de revision manual. El proyecto busca evidenciar estado en tiempo real, historial y alertas automaticas.",
+        "Sin una plataforma de monitoreo, la deteccion depende de revision manual. El proyecto busca evidenciar estado en tiempo real, historial, alertas automaticas y respuesta del sistema bajo carga controlada.",
     )
 
     add_heading(doc, "III. Alternativas de solucion")
@@ -191,7 +195,7 @@ def create_docx():
     add_body(
         doc,
         "La arquitectura incluye Zabbix Server, PostgreSQL, Zabbix Web, MailHog y cuatro servicios monitoreados. Todos los componentes se conectan mediante la red Docker proyecto7-monitoring. "
-        "Los agentes reportan disponibilidad y Zabbix Server ejecuta checks simples para validar el estado de los puertos de servicio.",
+        "Los agentes reportan disponibilidad y Zabbix Server ejecuta checks simples para validar el estado de los puertos de servicio. En la VPS, Caddy publica Zabbix, MailHog y el portal web mediante subdominios HTTPS.",
     )
 
     table = doc.add_table(rows=1, cols=3)
@@ -201,7 +205,7 @@ def create_docx():
         set_cell_text(cell, text, True)
         set_cell_shading(cell, "D9EAD3")
     rows = [
-        ("web-host", "Nginx", "HTTP puerto 80"),
+        ("web-host", "Node.js web", "HTTP puerto 80"),
         ("db-host", "MariaDB", "TCP puerto 3306"),
         ("dns-host", "CoreDNS", "TCP puerto 53"),
         ("ftp-host", "VSFTPD", "FTP puerto 21"),
@@ -216,18 +220,19 @@ def create_docx():
     add_heading(doc, "V. Implementacion")
     add_body(
         doc,
-        "El despliegue se ejecuta con docker compose. El archivo .env centraliza credenciales, puertos y zona horaria. "
+        "El despliegue se ejecuta con Docker Compose. El archivo .env centraliza credenciales, puertos y zona horaria. "
         "El servidor Zabbix usa una imagen personalizada construida desde docker/zabbix-server/Dockerfile. "
         "Tambien se montan archivos de configuracion Zabbix como volumen para el servidor y los agentes. "
-        "El script de aprovisionamiento usa la API JSON-RPC de Zabbix para crear el grupo de hosts, items, triggers y configuracion de correo hacia MailHog.",
+        "El script de aprovisionamiento usa la API JSON-RPC de Zabbix para crear el grupo de hosts, items, triggers, dashboard, escenario web y configuracion de correo hacia MailHog. "
+        "El servicio web expone endpoints JSON, /metrics, /api/charts y /api/compliance para demostrar monitoreo avanzado.",
     )
     add_figure(doc, FILES["latest"], "Fig. 2. Datos recientes de disponibilidad y metricas.")
 
     add_heading(doc, "VI. Pruebas")
     add_body(
         doc,
-        "Se validaron cuatro escenarios: dashboard en tiempo real, simulacion de caida del servicio web, envio de alertas a MailHog y consulta de datos historicos. "
-        "La caida se genero deteniendo el contenedor web-service y restaurandolo despues del periodo de observacion.",
+        "Se validaron cuatro escenarios minimos: dashboard en tiempo real, simulacion de caida del servicio web, envio de alertas a MailHog y consulta de datos historicos. "
+        "Tambien se ejecutaron pruebas con Artillery contra frontend, API, base de datos y endpoints de carga; la auditoria automatica reviso Compose, endpoints publicos, matriz de cumplimiento y objetos principales de Zabbix.",
     )
     add_figure(doc, FILES["failure"], "Fig. 3. Problema activo durante la simulacion de caida.")
     add_figure(doc, FILES["mailhog_failure"], "Fig. 4. Correos de alerta y recuperacion recibidos en MailHog.")
@@ -236,14 +241,15 @@ def create_docx():
     add_body(
         doc,
         "Los checks de servicio regresan 1 cuando el puerto responde y 0 cuando no responde. Los triggers permiten convertir cambios de estado en eventos visibles y notificaciones. "
-        "MailHog facilita probar el flujo de correo sin exponer cuentas reales. Docker Compose permite repetir la demostracion en otra maquina con el mismo conjunto de archivos.",
+        "MailHog facilita probar el flujo de correo sin exponer cuentas reales y el canal SMTP real del dominio demuestra escalamiento externo. "
+        "Las pruebas de carga relacionan trafico, latencia, SLO, escrituras en MariaDB y graficas historicas.",
     )
 
     add_heading(doc, "VIII. Conclusiones")
     add_body(
         doc,
         "La solucion cumple los requerimientos del Proyecto 7: infraestructura en contenedores, minimo cuatro hosts monitoreados, Zabbix Server con base de datos, frontend web, triggers, dashboards y alertas. "
-        "Como mejora futura se recomienda agregar dashboards exportados automaticamente, monitoreo del socket Docker y plantillas especificas por aplicacion.",
+        "El despliegue publico, backend transaccional, Artillery, exporter /metrics y matriz /api/compliance agregan evidencia para defender el proyecto por encima de los requisitos minimos.",
     )
 
     add_heading(doc, "Referencias")
@@ -252,6 +258,8 @@ def create_docx():
         "Docker Documentation, https://docs.docker.com",
         "MailHog, https://github.com/mailhog/MailHog",
         "CoreDNS, https://coredns.io",
+        "Artillery Documentation, https://www.artillery.io/docs",
+        "Caddy Documentation, https://caddyserver.com/docs",
     ]
     for ref in refs:
         p = doc.add_paragraph(ref)
@@ -290,19 +298,19 @@ def create_pdf():
         Paragraph("Proyecto 7: Monitoreo de infraestructura con Zabbix", styles["TitleCenter"]),
         Paragraph("<br/>".join(TEAM), styles["Author"]),
         Spacer(1, 0.12 * inch),
-        Paragraph("<b>Resumen - </b>Este proyecto implementa una plataforma de monitoreo con Zabbix 6.x, Docker Compose, cuatro servicios monitoreados y alertas validadas con MailHog.", styles["IEEEBody"]),
-        Paragraph("<b>Palabras clave - </b>Zabbix, Docker, monitoreo, alertas, MailHog.", styles["IEEEBody"]),
+        Paragraph("<b>Resumen - </b>Este proyecto implementa una plataforma de monitoreo con Zabbix 6.x, Docker Compose, cuatro servicios monitoreados y alertas validadas con MailHog. La solucion se publico en VPS con HTTPS e incorpora backend Node.js, MariaDB, graficas, SLO, exporter de metricas y pruebas Artillery.", styles["IEEEBody"]),
+        Paragraph("<b>Palabras clave - </b>Zabbix, Docker, monitoreo, alertas, MailHog, Artillery.", styles["IEEEBody"]),
         Spacer(1, 0.12 * inch),
     ]
     sections = [
         ("I. Introduccion", "Las infraestructuras telematicas requieren observabilidad para detectar fallas y reducir tiempos de indisponibilidad. Zabbix centraliza metricas, eventos y alertas en un entorno reproducible."),
-        ("II. Contexto", "La red evaluada contiene servicios HTTP, base de datos, DNS y FTP. La deteccion manual de fallas no escala; por ello se implementa monitoreo con eventos y notificaciones."),
-        ("III. Diseno", "La arquitectura usa Zabbix Server, PostgreSQL, Zabbix Web, MailHog y agentes Zabbix. Todos los servicios se conectan mediante la red Docker proyecto7-monitoring."),
+        ("II. Contexto", "La red evaluada contiene servicios HTTP, base de datos, DNS y FTP. La deteccion manual de fallas no escala; por ello se implementa monitoreo con eventos, notificaciones y pruebas de carga."),
+        ("III. Diseno", "La arquitectura usa Zabbix Server, PostgreSQL, Zabbix Web, MailHog, agentes Zabbix y un portal publico con backend Node.js. Todos los servicios se conectan mediante Docker Compose y la VPS publica subdominios HTTPS."),
     ]
     for title, body in sections:
         story += [Paragraph(title, styles["IEEEHead"]), Paragraph(body, styles["IEEEBody"])]
 
-    data = [["Host", "Servicio", "Check"], ["web-host", "Nginx", "HTTP 80"], ["db-host", "MariaDB", "TCP 3306"], ["dns-host", "CoreDNS", "TCP 53"], ["ftp-host", "VSFTPD", "FTP 21"]]
+    data = [["Host", "Servicio", "Check"], ["web-host", "Node.js web", "HTTP 80"], ["db-host", "MariaDB", "TCP 3306"], ["dns-host", "CoreDNS", "TCP 53"], ["ftp-host", "VSFTPD", "FTP 21"]]
     tbl = Table(data, colWidths=[1.4 * inch, 1.4 * inch, 2.0 * inch])
     tbl.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#D9EAD3")),
@@ -323,11 +331,11 @@ def create_pdf():
 
     story += [
         Paragraph("IV. Pruebas y resultados", styles["IEEEHead"]),
-        Paragraph("La prueba de caida detuvo web-service, generando evento en Zabbix y correos de problema/recuperacion. Los checks de HTTP, MySQL, DNS y FTP retornaron valor 1 en estado normal.", styles["IEEEBody"]),
+        Paragraph("La prueba de caida detuvo web-service, generando evento en Zabbix y correos de problema/recuperacion. Los checks de HTTP, MySQL, DNS y FTP retornaron valor 1 en estado normal. Artillery genero trafico contra frontend, API, MariaDB y endpoints de carga controlada.", styles["IEEEBody"]),
         Paragraph("V. Conclusiones", styles["IEEEHead"]),
-        Paragraph("La solucion cumple los requerimientos: despliegue dockerizado, minimo cuatro hosts monitoreados, dashboards, triggers, alertas y evidencia historica.", styles["IEEEBody"]),
+        Paragraph("La solucion cumple los requerimientos: despliegue dockerizado, minimo cuatro hosts monitoreados, dashboards, triggers, alertas y evidencia historica. El portal publico, SLO, exporter /metrics y matriz /api/compliance agregan valor para la sustentacion.", styles["IEEEBody"]),
         Paragraph("Referencias", styles["IEEEHead"]),
-        Paragraph("[1] Zabbix Documentation. [2] Docker Documentation. [3] MailHog GitHub.", styles["IEEEBody"]),
+        Paragraph("[1] Zabbix Documentation. [2] Docker Documentation. [3] MailHog GitHub. [4] Artillery Documentation. [5] Caddy Documentation.", styles["IEEEBody"]),
     ]
     doc.build(story)
     return out
@@ -396,16 +404,18 @@ def create_pptx():
 
     slides = [
         ("Problema", ["Servicios distribuidos pueden fallar sin aviso.", "La revision manual tarda y no deja historial.", "Se necesita visibilidad, alertas y evidencia para sustentacion."], None),
-        ("Objetivo", ["Desplegar Zabbix 6.x en Docker Compose.", "Monitorear web, base de datos, DNS y FTP.", "Validar triggers, dashboards, historicos y alertas por correo."], None),
-        ("Arquitectura Docker", ["Zabbix Server + PostgreSQL + Zabbix Web.", "MailHog simula SMTP para notificaciones.", "Red interna proyecto7-monitoring para resolucion por nombre."], "hosts"),
-        ("Inventario monitoreado", ["web-host: HTTP sobre Nginx.", "db-host: MariaDB puerto 3306.", "dns-host: CoreDNS puerto 53.", "ftp-host: VSFTPD puerto 21."], "hosts"),
-        ("Implementacion", ["docker-compose.yml define todos los componentes.", "Zabbix Server usa imagen personalizada con Dockerfile.", "Configuraciones Zabbix se montan como volumen.", "provision_zabbix.py registra hosts, items y triggers por API."], None),
-        ("Dashboard y datos", ["Latest data muestra disponibilidad y metricas.", "Los checks de servicio entregan 1 cuando responden.", "Los graficos permiten revisar comportamiento historico."], "latest"),
+        ("Objetivo", ["Desplegar Zabbix 6.x en Docker Compose.", "Monitorear web, base de datos, DNS y FTP.", "Validar triggers, dashboards, historicos y alertas por correo.", "Agregar portal HTTPS con backend, graficas, SLO y carga Artillery."], None),
+        ("Arquitectura Docker", ["Zabbix Server + PostgreSQL + Zabbix Web.", "MailHog simula SMTP para notificaciones.", "Red interna proyecto7-monitoring para resolucion por nombre.", "Caddy publica subdominios HTTPS en la VPS."], "hosts"),
+        ("Inventario monitoreado", ["web-host: portal Node.js HTTP.", "db-host: MariaDB puerto 3306.", "dns-host: CoreDNS puerto 53.", "ftp-host: VSFTPD puerto 21."], "hosts"),
+        ("Implementacion", ["docker-compose.yml define todos los componentes.", "Zabbix Server usa imagen personalizada con Dockerfile.", "Configuraciones Zabbix se montan como volumen.", "provision_zabbix.py registra hosts, items, triggers y web scenario por API."], None),
+        ("Dashboard y datos", ["Latest data muestra disponibilidad y metricas.", "Centro de graficas muestra CPU, memoria, disco, rutas y carga.", "La matriz de cumplimiento /api/compliance cruza requisitos contra evidencia."], "latest"),
         ("Prueba de caida", ["Se detiene web-service durante la demostracion.", "Zabbix marca el trigger HTTP web-service no responde.", "Al restaurar el contenedor, el evento queda resuelto."], "failure"),
-        ("Alertas con MailHog", ["MailHog recibe correos de problema y recuperacion.", "No se usan cuentas reales ni servidores externos.", "La evidencia valida el flujo completo de notificacion."], "mailhog_failure"),
-        ("Resultados", ["Contenedores principales saludables.", "Cuatro servicios con check de disponibilidad activo.", "Alertas generadas y recuperadas durante la prueba."], "problems"),
-        ("Conclusiones", ["Zabbix centraliza observabilidad operativa.", "Docker Compose hace el despliegue reproducible.", "La solucion cumple los requerimientos del Proyecto 7."], None),
-        ("Demo en vivo", ["Abrir Zabbix: http://localhost:8088", "Abrir MailHog: http://localhost:8025", "Ejecutar: .\\scripts\\test-failure.ps1 -Service web-service -Seconds 90"], None),
+        ("Alertas con MailHog", ["MailHog recibe correos de problema y recuperacion.", "El portal mailhog-zabbix tiene login propio.", "Tambien existe canal SMTP real del dominio para escalamiento."], "mailhog_failure"),
+        ("Pruebas de carga", ["Artillery genera trafico real contra frontend y API.", "El backend registra telemetria e incidentes en MariaDB.", "Zabbix observa /metrics, DB status y web scenario publico."], None),
+        ("Resultados", ["Contenedores principales saludables.", "Cuatro servicios con check de disponibilidad activo.", "Alertas generadas y recuperadas durante la prueba.", "Auditoria automatica con 0 fallas esperadas."], "problems"),
+        ("Entregables", ["Informe IEEE: entrega-final/Informe_IEEE_Proyecto7_Zabbix.pdf.", "Diapositivas: entrega-final/Presentacion_Proyecto7_Zabbix.pptx.", "Repo GitHub con README, Compose, scripts y evidencias."], None),
+        ("Conclusiones", ["Zabbix centraliza observabilidad operativa.", "Docker Compose hace el despliegue reproducible.", "El portal publico, Artillery y /api/compliance elevan la solucion sobre el minimo."], None),
+        ("Demo en vivo", ["Abrir web-zabbix.negociocontigo.com.", "Ejecutar: artillery run tests/artillery-live-demo.yml.", "Simular caida: docker compose -f docker-compose.vps.yml stop web-service.", "Cerrar con: bash scripts/audit-project.sh."], None),
     ]
     img_map = {
         "hosts": FILES["hosts"],
@@ -428,6 +438,20 @@ def create_pptx():
     return out
 
 
+def create_pptx_pdf(pptx_path):
+    pdf_path = OUT / "Presentacion_Proyecto7_Zabbix.pdf"
+    soffice = shutil.which("soffice") or shutil.which("soffice.com")
+    if not soffice:
+        return pdf_path if pdf_path.exists() else None
+    subprocess.run(
+        [soffice, "--headless", "--convert-to", "pdf", "--outdir", str(OUT), str(pptx_path)],
+        check=False,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    return pdf_path if pdf_path.exists() else None
+
+
 def create_checklist():
     path = OUT / "CHECKLIST_ENTREGA.md"
     path.write_text(
@@ -443,6 +467,11 @@ def create_checklist():
 - [x] Informe IEEE en DOCX y PDF.
 - [x] Presentacion PPTX.
 - [x] Evidencias PNG de dashboard, hosts, latest data, falla y MailHog.
+- [x] Web publica con backend, MariaDB, graficas, SLO, exporter `/metrics` y pruebas Artillery.
+- [x] Matriz de cumplimiento verificable en `/api/compliance`.
+- [x] Script de auditoria reproducible `scripts/audit-project.sh`.
+- [x] Guia de entregables y evaluacion `docs/ENTREGABLES_EVALUACION.md`.
+- [x] Matriz de rubrica `docs/MATRIZ_RUBRICA.md`.
 
 Accesos locales:
 
@@ -450,6 +479,12 @@ Accesos locales:
 - Usuario: Admin
 - Clave: zabbix
 - MailHog: http://localhost:8025
+
+Accesos publicos:
+
+- Portal: https://web-zabbix.negociocontigo.com
+- Zabbix: https://zabbix.negociocontigo.com
+- MailHog: https://mailhog-zabbix.negociocontigo.com/login
 """,
         encoding="utf-8",
     )
@@ -461,6 +496,7 @@ def zip_delivery(paths):
     include = [
         ROOT / ".env.example",
         ROOT / "docker-compose.yml",
+        ROOT / "docker-compose.vps.yml",
         ROOT / "README.md",
         ROOT / "docker" / "zabbix-server" / "Dockerfile",
         ROOT / "docker" / "zabbix-server" / "zabbix_server.conf.d" / "proyecto7.conf",
@@ -468,11 +504,26 @@ def zip_delivery(paths):
         ROOT / "docs" / "PRUEBAS.md",
         ROOT / "docs" / "SUSTENTACION.md",
         ROOT / "docs" / "PRESENTACION.md",
+        ROOT / "docs" / "DEMO_AVANZADA.md",
+        ROOT / "docs" / "ENTREGABLES_EVALUACION.md",
+        ROOT / "docs" / "MATRIZ_RUBRICA.md",
         ROOT / "scripts" / "provision.ps1",
         ROOT / "scripts" / "provision_zabbix.py",
         ROOT / "scripts" / "test-failure.ps1",
         ROOT / "scripts" / "verify.ps1",
+        ROOT / "scripts" / "audit-project.sh",
+        ROOT / "scripts" / "evidence-pack.sh",
+        ROOT / "scripts" / "live-artillery-demo.sh",
+        ROOT / "scripts" / "demo-full.sh",
+        ROOT / "tests" / "artillery-smoke.yml",
+        ROOT / "tests" / "artillery-live-demo.yml",
+        ROOT / "tests" / "artillery-web-service.yml",
+        ROOT / "tests" / "artillery-stress-demo.yml",
         ROOT / "services" / "web" / "default.conf",
+        ROOT / "services" / "web" / "Dockerfile",
+        ROOT / "services" / "web" / "server.js",
+        ROOT / "services" / "web" / "package.json",
+        ROOT / "services" / "web" / "package-lock.json",
         ROOT / "services" / "web" / "html" / "index.html",
         ROOT / "services" / "dns" / "Corefile",
         *paths,
@@ -490,9 +541,13 @@ def main():
     docx = create_docx()
     pdf = create_pdf()
     pptx = create_pptx()
+    pptx_pdf = create_pptx_pdf(pptx)
     checklist = create_checklist()
-    zip_path = zip_delivery([docx, pdf, pptx, checklist])
-    for path in [docx, pdf, pptx, checklist, zip_path]:
+    delivery_paths = [docx, pdf, pptx, checklist]
+    if pptx_pdf:
+        delivery_paths.append(pptx_pdf)
+    zip_path = zip_delivery(delivery_paths)
+    for path in [*delivery_paths, zip_path]:
         print(path)
 
 

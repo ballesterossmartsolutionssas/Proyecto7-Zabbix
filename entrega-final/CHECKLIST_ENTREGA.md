@@ -13,6 +13,8 @@
 - [x] Web publica con backend, MariaDB, graficas, SLO, exporter `/metrics` y pruebas Artillery.
 - [x] Matriz de cumplimiento verificable en `/api/compliance`.
 - [x] Script de auditoria reproducible `scripts/audit-project.sh`.
+- [x] Guia de entregables y evaluacion `docs/ENTREGABLES_EVALUACION.md`.
+- [x] Matriz de rubrica `docs/MATRIZ_RUBRICA.md`.
 
 Accesos locales:
 
@@ -20,3 +22,9 @@ Accesos locales:
 - Usuario: Admin
 - Clave: zabbix
 - MailHog: http://localhost:8025
+
+Accesos publicos:
+
+- Portal: https://web-zabbix.negociocontigo.com
+- Zabbix: https://zabbix.negociocontigo.com
+- MailHog: https://mailhog-zabbix.negociocontigo.com/login

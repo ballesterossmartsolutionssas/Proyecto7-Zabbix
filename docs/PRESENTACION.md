@@ -17,7 +17,7 @@ Una infraestructura con varios servicios puede fallar sin aviso. Se necesita vis
 
 ## Diapositiva 3 - Objetivo
 
-Implementar una plataforma de monitoreo con Zabbix 6.x, Docker Compose, cuatro servicios monitoreados y notificaciones de alerta mediante MailHog.
+Implementar una plataforma de monitoreo con Zabbix 6.x, Docker Compose, cuatro servicios monitoreados y notificaciones de alerta mediante MailHog. Como valor agregado, publicar la solucion con HTTPS y monitorear una aplicacion real con backend, base de datos, graficas, SLO y pruebas de carga.
 
 ## Diapositiva 4 - Arquitectura
 
@@ -29,6 +29,8 @@ Componentes:
 - MailHog.
 - Servicios HTTP, MySQL/MariaDB, DNS y FTP.
 - Agentes Zabbix.
+- Portal publico `web-zabbix.negociocontigo.com`.
+- Backend Node.js con MariaDB, `/metrics`, `/api/charts`, `/api/live` y `/api/compliance`.
 
 ## Diapositiva 5 - Servicios monitoreados
 
@@ -72,8 +74,25 @@ MailHog recibe los correos de prueba enviados por Zabbix, permitiendo validar no
 
 ## Diapositiva 11 - Resultados
 
-La solucion detecta servicios caidos, centraliza eventos, muestra datos historicos y permite demostrar recuperacion despues de una falla.
+La solucion detecta servicios caidos, centraliza eventos, muestra datos historicos y permite demostrar recuperacion despues de una falla. La auditoria automatica valida la matriz de cumplimiento del enunciado y Artillery evidencia comportamiento bajo carga.
 
-## Diapositiva 12 - Conclusiones
+## Diapositiva 12 - Valor agregado
+
+- Despliegue HTTPS en VPS.
+- Portal con frontend y backend real.
+- Persistencia de telemetria e incidentes en MariaDB.
+- Graficas operativas y SLO.
+- Pruebas Artillery en vivo.
+- Matriz de cumplimiento `/api/compliance`.
+- Auditoria reproducible `scripts/audit-project.sh`.
+
+## Diapositiva 13 - Entregables
+
+- Informe IEEE: `entrega-final/Informe_IEEE_Proyecto7_Zabbix.pdf`.
+- Presentacion: `entrega-final/Presentacion_Proyecto7_Zabbix.pptx`.
+- Repositorio GitHub con Docker Compose, scripts y README.
+- Evidencias: `entrega-final/evidencias/` y `entrega-final/auditoria-*/`.
+
+## Diapositiva 14 - Conclusiones
 
 Zabbix permite monitorear infraestructura dockerizada de forma reproducible. Los triggers y dashboards facilitan respuesta ante incidentes y analisis del comportamiento de servicios.
