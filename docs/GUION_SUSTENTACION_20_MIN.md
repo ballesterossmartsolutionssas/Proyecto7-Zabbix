@@ -1,10 +1,14 @@
 # Guion de sustentación - 20 minutos
 
+Ubicación de este archivo: `docs/GUION_SUSTENTACION_20_MIN.md`.
+
+Versión corta para mandar al grupo: `entrega-final/GUION_PARA_ENVIAR_GRUPO.md`.
+
 Este guion está pensado para enviarlo al grupo y que cada integrante sepa exactamente qué decir, qué diapositivas tomar y qué pantalla mostrar. La idea es que todos hablen, pero que Juan Camilo cierre con la parte más técnica: pruebas, Artillery, caída controlada, alertas y evidencias.
 
 ## Mensaje corto para el grupo
 
-Equipo, la sustentación queda dividida así:
+Equipo, la sustentación queda dividida así. La idea principal es que el proyecto no se vea como "solo CPU, memoria y disco", sino como una demo de observabilidad: servicios reales, carga, incidentes, SLO, alertas y recuperación.
 
 - Luis Felipe: minutos 0 a 5. Problema, objetivo, alternativas y entregables.
 - Juan Sebastián: minutos 5 a 10. Arquitectura Docker, servicios monitoreados e inventario.
@@ -32,7 +36,7 @@ Guion sugerido:
 
 1. "Buenos días. Nosotros somos el grupo del Proyecto 7: Monitoreo de infraestructura con Zabbix. El objetivo fue implementar una plataforma capaz de monitorear servicios reales desplegados con Docker."
 2. "El problema es que una infraestructura puede tener el portal web funcionando parcialmente, pero fallar en base de datos, DNS o FTP. Si no hay monitoreo, la detección depende de revisión manual o del reporte del usuario."
-3. "Por eso se planteó una solución con Zabbix 6.x, agentes, base de datos, Docker Compose y alertas por correo. Además, agregamos una aplicación real con backend, métricas, gráficas, SLO y pruebas de carga."
+3. "Por eso se planteó una solución con Zabbix 6.x, agentes, base de datos, Docker Compose y alertas por correo. La parte extra es que no dejamos el servicio web como una página estática: lo convertimos en una app para probar carga, incidentes, métricas, SLO y recuperación."
 4. "Revisamos alternativas como Nagios, Prometheus y Datadog. Escogimos Zabbix porque integra agentes, frontend, triggers, dashboards, media types y API de aprovisionamiento en una sola plataforma."
 5. "Como entregables dejamos informe IEEE, diapositivas, repositorio GitHub, README, evidencias y una demo pública con HTTPS."
 
@@ -54,7 +58,7 @@ Diapositivas: 4, 5 y 6.
 Guion sugerido:
 
 1. "La arquitectura está compuesta por Zabbix Server, PostgreSQL, Zabbix Web, MailHog y cuatro servicios monitoreados: web, base de datos, DNS y FTP."
-2. "Cada servicio tiene su agente Zabbix correspondiente. Esto permite monitorear disponibilidad del host y métricas básicas como CPU, memoria y disco."
+2. "Cada servicio tiene su agente Zabbix correspondiente. Eso cubre lo básico: CPU, memoria y disco. Pero además se agregaron checks de servicio y endpoints reales para validar comportamiento, no solo recursos."
 3. "El inventario en Zabbix queda así: `web-host` para HTTP, `db-host` para MariaDB, `dns-host` para CoreDNS y `ftp-host` para VSFTPD."
 4. "Todo está definido en `docker-compose.yml`. Para la VPS usamos `docker-compose.vps.yml`, que deja internos los puertos sensibles y publica solo lo necesario mediante Caddy con HTTPS."
 5. "También se cumple el requisito de imagen personalizada, porque el servidor Zabbix se construye desde `docker/zabbix-server/Dockerfile`, y las configuraciones se montan como volúmenes."
@@ -72,7 +76,7 @@ Frase de transición:
 
 ## 10:00 - 15:00 Daniela
 
-Mensaje central: Zabbix no solo está instalado; quedó configurado con hosts, items, triggers, dashboard y alertas.
+Mensaje central: Zabbix no solo está instalado; quedó configurado para mirar hosts, servicios, triggers, dashboard, alertas y endpoints de la aplicación.
 
 Diapositivas: 7, 8 y 9.
 
@@ -80,8 +84,8 @@ Guion sugerido:
 
 1. "En Zabbix se creó el grupo `Proyecto 7 - Infraestructura Docker`, donde están registrados los cuatro hosts monitoreados."
 2. "El aprovisionamiento se automatizó con `scripts/provision_zabbix.py`. Ese script crea hosts, items, triggers, dashboard, media type de correo y web scenario."
-3. "En Latest data se pueden revisar `agent.ping`, CPU, memoria, disco y checks de disponibilidad para HTTP, MySQL/MariaDB, DNS y FTP."
-4. "El dashboard permite ver el estado general de la infraestructura y las métricas históricas. Esto cumple la prueba de dashboard en tiempo real y evidencia actualización dinámica."
+3. "En Latest data se pueden revisar `agent.ping`, CPU, memoria, disco y checks de disponibilidad para HTTP, MySQL/MariaDB, DNS y FTP. Esto muestra la base del monitoreo."
+4. "El dashboard permite ver el estado general de la infraestructura y las métricas históricas. La idea es mostrar que Zabbix sirve para operación, no solo para tener contenedores prendidos."
 5. "Para alertas usamos MailHog como servidor SMTP de laboratorio. Así se valida que Zabbix genera correos de problema y recuperación sin enviar pruebas a correos reales."
 6. "También existe un canal SMTP real del dominio como propuesta de escalamiento para un ambiente más parecido a producción."
 
@@ -110,8 +114,8 @@ Diapositivas: 10, 11, 12, 13 y 14.
 
 Guion sugerido:
 
-1. "Para ir más allá del requisito, el servicio web no es un index estático. Es una aplicación Node.js con frontend, backend, MariaDB, endpoints JSON, telemetría, incidentes, gráficas, SLO y exporter `/metrics`."
-2. "Aquí se ve el portal público: `https://web-zabbix.negociocontigo.com`. Desde este portal podemos revisar métricas, carga, cumplimiento y estado de la base de datos."
+1. "Para ir más allá del requisito, el servicio web no es un index estático. Es una aplicación Node.js con frontend, backend, MariaDB, endpoints JSON, telemetría, incidentes, gráficas, SLO y exporter `/metrics`. Eso permite hacer pruebas de verdad."
+2. "Aquí se ve el portal público: `https://web-zabbix.negociocontigo.com`. Esta pantalla sirve como consola de demo: estado, plan de prueba, carga, base de datos, analíticas y cumplimiento."
 3. "La matriz `/api/compliance` cruza los requisitos del enunciado contra evidencias concretas. Esto ayuda a sustentar que se cumplió Docker Compose, cuatro hosts, MailHog, dashboard, triggers, pruebas y documentación."
 4. "Ahora ejecuto Artillery para generar tráfico real contra el frontend y la API. Esto permite observar comportamiento bajo carga, no solamente disponibilidad básica."
 
@@ -124,7 +128,7 @@ artillery run tests/artillery-live-demo.yml
 
 Mientras corre Artillery:
 
-- Mostrar Load Lab en el portal.
+- Mostrar la consola de pruebas guiadas en el portal.
 - Mostrar rutas golpeadas.
 - Mostrar SLO y gráficas.
 - Decir: "Si el tráfico aumenta y los endpoints responden, podemos diferenciar disponibilidad normal de degradación por carga."

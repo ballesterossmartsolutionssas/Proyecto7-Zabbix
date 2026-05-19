@@ -2,38 +2,23 @@
 
 Archivo principal: `entrega-final/Presentacion_Proyecto7_Zabbix.pptx`.
 
-La presentación final tiene 14 diapositivas y está organizada para una sustentación de 20 minutos. La distribución recomendada es: Luis Felipe presenta problema y objetivo; Juan Sebastián presenta arquitectura e implementación Docker; Daniela presenta Zabbix, dashboard y alertas; Juan Camilo cierra con pruebas, Artillery, resultados, entregables y demo en vivo.
+La presentación final tiene 14 diapositivas y está organizada para 20 minutos. El hilo de la sustentación es este: partimos del monitoreo básico pedido por el enunciado, pero lo llevamos a observabilidad operativa con una app real, carga, incidentes, SLO, métricas exportables, alertas y auditoría.
 
 ## Diapositiva 1 - Portada
 
 Proyecto 7: Monitoreo de infraestructura con Zabbix.
 
-Integrantes:
-
-- Juan Camilo Ballesteros Sierra
-- Luis Felipe Murillo Matallana
-- Juan Sebastián Delgado
-- Daniela Castro Quiñones
-
 ## Diapositiva 2 - Problema
 
-- Servicios distribuidos pueden fallar sin aviso.
-- La revisión manual tarda y no deja historial.
-- Se necesita visibilidad, alertas y evidencia para sustentación.
+El riesgo real es enterarse tarde de una caída. Sin monitoreo centralizado, la revisión es manual, no hay histórico y la evidencia aparece después del problema.
 
 ## Diapositiva 3 - Objetivo
 
-- Desplegar Zabbix 6.x en Docker Compose.
-- Monitorear web, base de datos, DNS y FTP.
-- Validar triggers, dashboards, históricos y alertas por correo.
-- Agregar portal HTTPS con backend, gráficas, SLO y carga Artillery.
+Montamos algo que se puede medir, presionar y recuperar. La base es Zabbix + Docker Compose + cuatro servicios; el valor extra es la consola web con backend, MariaDB, SLO, gráficas, incidentes y Artillery.
 
 ## Diapositiva 4 - Arquitectura Docker
 
-- Zabbix Server + PostgreSQL + Zabbix Web.
-- MailHog simula SMTP para notificaciones.
-- Red interna `proyecto7-monitoring` para resolución por nombre.
-- Caddy publica subdominios HTTPS en la VPS.
+Zabbix queda mirando servicios reales en Docker: Zabbix Server, PostgreSQL, Zabbix Web, MailHog, agentes y cuatro servicios monitoreados publicados con HTTPS en la VPS.
 
 ## Diapositiva 5 - Inventario monitoreado
 
@@ -44,53 +29,39 @@ Integrantes:
 
 ## Diapositiva 6 - Implementación
 
-- `docker-compose.yml` define todos los componentes.
-- Zabbix Server usa imagen personalizada con Dockerfile.
-- Las configuraciones Zabbix se montan como volumen.
-- `provision_zabbix.py` registra hosts, items, triggers y web scenario por API.
+Todo se puede levantar de nuevo desde el repo: Compose, Dockerfile personalizado, archivos de configuración montados como volumen y aprovisionamiento por API con `provision_zabbix.py`.
 
-## Diapositiva 7 - Dashboard y datos
+## Diapositiva 7 - Dashboard
 
-- Latest data muestra disponibilidad y métricas.
-- Centro de gráficas muestra CPU, memoria, disco, rutas y carga.
-- La matriz de cumplimiento `/api/compliance` cruza requisitos contra evidencia.
+El dashboard muestra el pulso del sistema: recursos, servicios, estado general y problemas visibles para operación.
 
-## Diapositiva 8 - Prueba de caída
+## Diapositiva 8 - Métricas
 
-- Se detiene `web-service` durante la demostración.
-- Zabbix marca el trigger HTTP `web-service` no responde.
-- Al restaurar el contenedor, el evento queda resuelto.
+Latest data muestra qué responde y qué no. Aquí se conectan los checks básicos con disponibilidad HTTP, MariaDB, DNS, FTP, `/metrics` y web scenario.
 
-## Diapositiva 9 - Alertas con MailHog
+## Diapositiva 9 - Caída controlada
 
-- MailHog recibe correos de problema y recuperación.
-- El portal `mailhog-zabbix` tiene login propio.
-- También existe canal SMTP real del dominio para escalamiento.
+La caída controlada prueba el flujo completo: detener servicio, abrir problema, enviar alerta, restaurar y conservar histórico.
 
-## Diapositiva 10 - Pruebas de carga
+## Diapositiva 10 - Alertas
 
-- Artillery genera tráfico real contra frontend y API.
-- El backend registra telemetría e incidentes en MariaDB.
-- Zabbix observa `/metrics`, estado de DB y web scenario público.
+MailHog muestra la alerta sin enviar spam. Sirve para sustentar correos de problema y recuperación dentro de un laboratorio controlado.
 
-## Diapositiva 11 - Resultados
+## Diapositiva 11 - Carga
 
-- Contenedores principales saludables.
-- Cuatro servicios con check de disponibilidad activo.
-- Alertas generadas y recuperadas durante la prueba.
-- Auditoría automática con 0 fallas esperadas.
+Artillery mete presión real a la demo. Mientras corre, la consola muestra requests, rutas, SLO, cargas recientes y telemetría.
 
-## Diapositiva 12 - Entregables
+## Diapositiva 12 - Resultados
 
-- Informe IEEE: `entrega-final/Informe_IEEE_Proyecto7_Zabbix.pdf`.
-- Diapositivas: `entrega-final/Presentacion_Proyecto7_Zabbix.pptx`.
-- Repositorio GitHub con README, Compose, scripts y evidencias.
+El cierre se defiende con métricas y auditoría: `/api/compliance`, auditoría automática, Zabbix, MailHog y evidencias PNG.
 
-## Diapositiva 13 - Conclusiones
+## Diapositiva 13 - Entregables
 
-- Zabbix centraliza observabilidad operativa.
-- Docker Compose hace el despliegue reproducible.
-- El portal público, Artillery y `/api/compliance` elevan la solución sobre el mínimo.
+- Informe IEEE.
+- Diapositivas.
+- Repositorio GitHub.
+- Evidencias.
+- Guion para el grupo.
 
 ## Diapositiva 14 - Demo en vivo
 

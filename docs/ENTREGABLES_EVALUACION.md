@@ -45,7 +45,7 @@ Division por integrante:
 
 Guion detallado: `docs/GUION_SUSTENTACION_20_MIN.md`.
 
-1. Abrir el portal público y mostrar inventario, backend, Load Lab, Centro de gráficas y Matriz de cumplimiento.
+1. Abrir el portal público y mostrar estado en vivo, plan de observabilidad, pruebas guiadas, analíticas y Matriz de cumplimiento.
 2. Abrir Zabbix y mostrar el grupo `Proyecto 7 - Infraestructura Docker`.
 3. Mostrar hosts `web-host`, `db-host`, `dns-host` y `ftp-host` con items de CPU, memoria, disco, ping y servicios.
 4. Ejecutar carga controlada:

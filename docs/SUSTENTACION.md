@@ -25,12 +25,12 @@ La division detallada esta en `docs/GUION_SUSTENTACION_20_MIN.md`.
    - Zabbix Web.
    - Aprovisionamiento por API.
    - CPU, memoria, disco y latest data.
-   - Mostrar el `Centro de gráficas` con CPU, memoria, disco, rutas y cargas recientes.
+   - Mostrar la sección de analíticas con CPU, memoria, disco, rutas y cargas recientes.
    - MailHog como receptor de alertas.
 
 4. Juan Camilo Ballesteros Sierra - 15:00 a 20:00
    - Pruebas minimas.
-   - Ejecutar `artillery run tests/artillery-live-demo.yml` con el panel `Load Lab en vivo` abierto.
+   - Ejecutar `artillery run tests/artillery-live-demo.yml` con la consola de pruebas guiadas abierta.
    - Simular caída de `web-service`.
    - Mostrar el web scenario `Proyecto 7 - recorrido público` en Zabbix.
    - Ver problema en Zabbix.

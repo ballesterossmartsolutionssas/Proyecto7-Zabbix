@@ -567,7 +567,7 @@ def create_pptx():
     screenshot(s, FILES["dashboard"], 7.35, 0.76, 5.45, 3.55, True)
     text(s, "PROYECTO 7", 0.7, 0.72, 2.3, 0.25, 9, TEAL, True)
     text(s, "Monitoreo de infraestructura\ncon Zabbix", 0.68, 1.23, 6.2, 1.35, 38, WHITE, True)
-    text(s, "Una plataforma dockerizada con Zabbix 6.x, alertas, backend real, métricas, SLO y pruebas de carga en vivo.", 0.72, 3.02, 5.8, 0.65, 16, (205, 220, 228))
+    text(s, "Zabbix 6.x monitoreando servicios Docker, alertas, backend real, métricas, SLO y pruebas de carga en vivo.", 0.72, 3.02, 5.8, 0.65, 16, (205, 220, 228))
     metric(s, "4", "hosts monitoreados", 0.72, 4.15, 1.55, TEAL, True)
     metric(s, "7", "páginas IEEE", 2.45, 4.15, 1.55, CYAN, True)
     metric(s, "96", "requests smoke", 4.18, 4.15, 1.55, LIME, True)
@@ -578,7 +578,7 @@ def create_pptx():
     # 2 problem
     s = prs.slides.add_slide(blank)
     bg(s)
-    title(s, "problema", "Sin observabilidad, la falla se detecta tarde y sin evidencia.", 2)
+    title(s, "problema", "El riesgo real es enterarse tarde de una caída.", 2)
     text(s, "La infraestructura evaluada mezcla web, base de datos, DNS y FTP. Si un componente cae, el usuario percibe degradación antes de que el equipo tenga una causa clara.", 0.62, 1.85, 5.4, 0.72, 14, MUTED)
     stages = [("Falla", "servicio cae", RED), ("Usuario", "reporta tarde", AMBER), ("Operación", "revisa manual", CYAN), ("Histórico", "no existe", TEAL)]
     for i, (name, sub, accent) in enumerate(stages):
@@ -593,18 +593,18 @@ def create_pptx():
     # 3 objective
     s = prs.slides.add_slide(blank)
     bg(s, (239, 246, 242))
-    title(s, "objetivo", "La entrega es una plataforma observable, no una maqueta.", 3)
+    title(s, "objetivo", "Montamos algo que se puede medir, presionar y recuperar.", 3)
     label_box(s, "Mínimo del enunciado", "Zabbix Server, base de datos, frontend, MailHog, cuatro hosts, agentes, templates, triggers y dashboards.", 0.75, 2.0, 3.65, 2.0, TEAL)
     label_box(s, "Valor agregado", "Portal HTTPS con backend Node.js, MariaDB, gráficas, SLO, exporter /metrics, Artillery y auditoría reproducible.", 4.85, 2.0, 3.65, 2.0, CYAN)
     label_box(s, "Evidencia defendible", "Repositorio, README, informe IEEE de 7 páginas, PPTX, capturas, scripts y matriz /api/compliance.", 8.95, 2.0, 3.65, 2.0, LIME)
     text(s, "Tesis de la sustentación", 0.75, 5.2, 2.7, 0.25, 11, MUTED, True)
-    text(s, "Zabbix observa una infraestructura real, detecta fallas y permite explicar el comportamiento del sistema bajo carga.", 0.75, 5.58, 10.2, 0.48, 22, INK, True)
+    text(s, "La gracia del proyecto está en mostrar operación: salud, carga, incidentes, alertas y recuperación.", 0.75, 5.58, 10.2, 0.48, 22, INK, True)
     footer(s, 3)
 
     # 4 architecture
     s = prs.slides.add_slide(blank)
     bg(s)
-    title(s, "arquitectura", "Compose conecta monitoreo, servicios y HTTPS.", 4)
+    title(s, "arquitectura", "Zabbix observa servicios Docker.", 4)
     node(s, "Caddy", "HTTPS público", 0.85, 2.0, 1.55, 0.78, (235, 253, 246), TEAL)
     node(s, "Zabbix Web", "frontend", 3.0, 1.55, 1.65, 0.78, WHITE, CYAN)
     node(s, "Zabbix Server", "triggers + API", 3.0, 2.95, 1.65, 0.78, WHITE, TEAL)
@@ -627,7 +627,7 @@ def create_pptx():
     # 5 inventory
     s = prs.slides.add_slide(blank)
     bg(s, (246, 248, 250))
-    title(s, "inventario", "Cuatro servicios distintos quedan medidos como hosts operativos.", 5)
+    title(s, "inventario", "El inventario cubre web, base de datos, DNS y FTP.", 5)
     headers = ["Host", "Servicio", "Check", "Agente"]
     xs = [0.82, 3.3, 5.78, 9.05]
     widths = [2.1, 2.1, 2.85, 2.25]
@@ -652,7 +652,7 @@ def create_pptx():
     # 6 implementation
     s = prs.slides.add_slide(blank)
     bg(s)
-    title(s, "implementación", "El despliegue se puede reconstruir desde archivos, no desde pasos manuales.", 6)
+    title(s, "implementación", "Todo se puede levantar de nuevo desde el repo.", 6)
     files = [
         ("docker-compose.yml", "topología local"),
         ("docker-compose.vps.yml", "publicación VPS"),
@@ -670,13 +670,13 @@ def create_pptx():
         node(s, value, label, x, 3.0, 1.2, 0.8, WHITE, accent)
         if i < 3:
             line(s, x + 1.2, 3.4, x + 1.58, 3.4, LINE, 1.5)
-    label_box(s, "Punto fuerte", "La solución queda trazable: archivo -> contenedor -> objeto Zabbix -> evidencia -> auditoría.", 6.1, 5.1, 5.5, 1.1, TEAL)
+    label_box(s, "Punto fuerte", "Cada cosa que se muestra sale de un archivo, un contenedor, un item de Zabbix o una evidencia.", 6.1, 5.1, 5.5, 1.1, TEAL)
     footer(s, 6)
 
     # 7 dashboard
     s = prs.slides.add_slide(blank)
     bg(s, INK)
-    title(s, "dashboard", "El dashboard resume la operación.", 7, True)
+    title(s, "dashboard", "El dashboard muestra el pulso del sistema.", 7, True)
     screenshot(s, FILES["dashboard"], 0.72, 1.78, 8.35, 4.72, True)
     metric(s, "CPU", "recursos", 9.55, 2.05, 1.85, TEAL, True)
     metric(s, "RAM", "memoria", 9.55, 3.05, 1.85, CYAN, True)
@@ -687,7 +687,7 @@ def create_pptx():
     # 8 latest data
     s = prs.slides.add_slide(blank)
     bg(s)
-    title(s, "métricas", "Latest data prueba que Zabbix recibe señales de hosts y servicios.", 8)
+    title(s, "métricas", "Latest data separa sano de caído.", 8)
     screenshot(s, FILES["latest"], 0.72, 1.75, 7.55, 4.58, True)
     label_box(s, "Checks básicos", "agent.ping, CPU, memoria y disco para observar salud del host.", 8.75, 1.95, 3.35, 1.08, TEAL)
     label_box(s, "Checks de servicio", "HTTP, MySQL/MariaDB, DNS y FTP validan disponibilidad funcional.", 8.75, 3.45, 3.35, 1.08, CYAN)
@@ -697,7 +697,7 @@ def create_pptx():
     # 9 failure
     s = prs.slides.add_slide(blank)
     bg(s, (250, 247, 244))
-    title(s, "caída controlada", "La prueba clave recorre falla, problema, alerta y recuperación.", 9)
+    title(s, "caída controlada", "La caída controlada prueba el flujo completo.", 9)
     screenshot(s, FILES["failure"], 6.85, 1.7, 5.45, 3.55, True)
     steps = [("1", "stop web-service", RED), ("2", "trigger en Zabbix", AMBER), ("3", "correo MailHog", CYAN), ("4", "start + recovery", TEAL)]
     for i, (num, lbl, accent) in enumerate(steps):
@@ -713,7 +713,7 @@ def create_pptx():
     # 10 mailhog
     s = prs.slides.add_slide(blank)
     bg(s, INK)
-    title(s, "alertas", "MailHog evidencia las alertas.", 10, True)
+    title(s, "alertas", "MailHog captura alertas.", 10, True)
     screenshot(s, FILES["mailhog_failure"], 0.72, 1.62, 8.6, 4.86, True)
     label_box(s, "Laboratorio seguro", "Captura correos sin enviar spam a cuentas reales durante las pruebas.", 9.75, 1.85, 2.65, 1.18, TEAL, True)
     label_box(s, "Escalamiento", "Queda documentado un canal SMTP real del dominio para producción.", 9.75, 3.45, 2.65, 1.18, AMBER, True)
@@ -722,7 +722,7 @@ def create_pptx():
     # 11 artillery
     s = prs.slides.add_slide(blank)
     bg(s)
-    title(s, "carga", "Artillery convierte la demo en una prueba de carga.", 11)
+    title(s, "carga", "Artillery mete presión real a la demo.", 11)
     text(s, "artillery run tests/artillery-live-demo.yml", 0.85, 2.05, 5.7, 0.32, 16, TEAL, True)
     values = [96, 0, 24]
     labels = ["requests smoke", "usuarios fallidos", "p95 aprox. ms"]
@@ -733,14 +733,14 @@ def create_pptx():
         rect(s, x, 5.55 - h, 1.05, h, accent)
         text(s, str(val), x, 5.78, 1.05, 0.32, 18, INK, True, PP_ALIGN.CENTER)
         text(s, lbl, x - 0.2, 6.17, 1.45, 0.22, 8.3, MUTED, True, PP_ALIGN.CENTER)
-    label_box(s, "Qué demuestra", "El backend registra telemetría e incidentes en MariaDB mientras Zabbix observa endpoints públicos, DB status y /metrics.", 7.15, 2.0, 4.8, 1.5, CYAN)
-    label_box(s, "Cómo se ve en vivo", "Durante la sustentación suben requests, rutas golpeadas, cargas recientes y SLO en el portal.", 7.15, 4.1, 4.8, 1.25, TEAL)
+    label_box(s, "Qué demuestra", "La app no solo responde: guarda telemetría, registra incidentes y expone métricas para Zabbix.", 7.15, 2.0, 4.8, 1.5, CYAN)
+    label_box(s, "Cómo se ve en vivo", "Mientras corre Artillery suben requests, rutas golpeadas, cargas recientes y SLO en el portal.", 7.15, 4.1, 4.8, 1.25, TEAL)
     footer(s, 11)
 
     # 12 results
     s = prs.slides.add_slide(blank)
     bg(s, (242, 247, 249))
-    title(s, "resultados", "La evaluación queda cubierta con evidencia y verificación reproducible.", 12)
+    title(s, "resultados", "El cierre se defiende con métricas y auditoría.", 12)
     metric(s, "100%", "/api/compliance", 0.85, 2.05, 2.1, TEAL)
     metric(s, "27", "validaciones OK", 3.25, 2.05, 2.1, CYAN)
     metric(s, "0", "fallas auditoría", 5.65, 2.05, 2.1, LIME)
@@ -756,7 +756,7 @@ def create_pptx():
     # 13 deliverables
     s = prs.slides.add_slide(blank)
     bg(s)
-    title(s, "entregables", "El proyecto se entrega como repositorio, informe, deck y demo pública.", 13)
+    title(s, "entregables", "Queda repo, informe, deck y demo pública.", 13)
     items = [
         ("Informe IEEE", "entrega-final/Informe_IEEE_Proyecto7_Zabbix.pdf", TEAL),
         ("Diapositivas", "entrega-final/Presentacion_Proyecto7_Zabbix.pptx", CYAN),
@@ -773,7 +773,7 @@ def create_pptx():
     # 14 demo
     s = prs.slides.add_slide(blank)
     bg(s, INK)
-    title(s, "demo en vivo", "La demo cierra con tráfico, caída, alerta y auditoría.", 14, True)
+    title(s, "demo en vivo", "La demo debe cerrar viendo tráfico, caída y alerta.", 14, True)
     commands = [
         ("1", "Abrir portal", "https://web-zabbix.negociocontigo.com"),
         ("2", "Generar carga", "artillery run tests/artillery-live-demo.yml"),
@@ -787,7 +787,7 @@ def create_pptx():
         text(s, head, 1.55, y + 0.04, 2.1, 0.22, 12, WHITE, True)
         text(s, cmd, 3.55, y + 0.07, 7.4, 0.18, 10.5, (200, 216, 225))
     screenshot(s, FILES["mailhog"], 8.5, 4.45, 3.65, 1.6, True)
-    text(s, "Cierre: Zabbix detecta, MailHog evidencia, Artillery presiona y la auditoría confirma cumplimiento.", 0.9, 6.25, 7.2, 0.42, 18, TEAL, True)
+    text(s, "Cierre: Zabbix detecta, MailHog muestra, Artillery presiona y la auditoría confirma.", 0.9, 6.25, 7.2, 0.42, 18, TEAL, True)
     footer(s, 14, True)
 
     out = OUT / "Presentacion_Proyecto7_Zabbix.pptx"
@@ -865,6 +865,7 @@ def zip_delivery(paths):
         ROOT / "docs" / "ENTREGABLES_EVALUACION.md",
         ROOT / "docs" / "MATRIZ_RUBRICA.md",
         ROOT / "docs" / "GUION_SUSTENTACION_20_MIN.md",
+        ROOT / "entrega-final" / "GUION_PARA_ENVIAR_GRUPO.md",
         ROOT / "scripts" / "provision.ps1",
         ROOT / "scripts" / "provision_zabbix.py",
         ROOT / "scripts" / "test-failure.ps1",

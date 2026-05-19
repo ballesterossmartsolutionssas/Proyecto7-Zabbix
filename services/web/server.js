@@ -535,11 +535,78 @@ function complianceSnapshot() {
     scorePercent: Number(((ok / checks.length) * 100).toFixed(1)),
     checks,
     demoFlow: [
-      "Abrir el portal publico y mostrar Probe HTTP, backend, Load Lab y Centro de graficas.",
+      "Abrir el portal público y mostrar estado en vivo, plan de observabilidad, pruebas, analíticas y matriz.",
       "Ejecutar artillery run tests/artillery-live-demo.yml en la VPS.",
       "Ver cambios en /api/live, /api/charts, /metrics y Zabbix Latest data.",
       "Detener web-service por 90 segundos para generar problema y correo en MailHog.",
-      "Reiniciar web-service y mostrar recuperacion en Zabbix Problems y graficas historicas.",
+      "Reiniciar web-service y mostrar recuperación en Zabbix Problems y gráficas históricas.",
+    ],
+  };
+}
+
+function observabilityPlan() {
+  return {
+    generatedAt: new Date().toISOString(),
+    thesis:
+      "El proyecto parte del monitoreo básico, pero lo extiende hacia una consola operativa con carga, SLO, telemetría, incidentes, métricas exportables y auditoría.",
+    beyondBasic: [
+      {
+        area: "Experiencia observable",
+        capability: "Portal con frontend y backend real",
+        proof: "El contenedor web expone HTML, API JSON, /health, /api/live, /api/charts y /api/compliance.",
+      },
+      {
+        area: "Analítica operativa",
+        capability: "Gráficas de CPU, memoria, disco, rutas, SLO y cargas",
+        proof: "El frontend consume /api/charts y dibuja tendencias durante la prueba.",
+      },
+      {
+        area: "Pruebas de carga",
+        capability: "Escenarios Artillery para smoke, demo y estrés controlado",
+        proof: "tests/artillery-smoke.yml, tests/artillery-live-demo.yml y tests/artillery-stress-demo.yml.",
+      },
+      {
+        area: "Persistencia",
+        capability: "MariaDB guarda telemetría e incidentes",
+        proof: "Tablas telemetry_samples e incidents consultadas por /api/db/status y /api/incidents.",
+      },
+      {
+        area: "Integración Zabbix",
+        capability: "Exporter /metrics y web scenario público",
+        proof: "Zabbix puede leer contadores de runtime, SLO, cargas, DB y matriz de cumplimiento.",
+      },
+      {
+        area: "Evidencia",
+        capability: "Auditoría reproducible",
+        proof: "scripts/audit-project.sh valida endpoints, Compose, Zabbix API y cumplimiento.",
+      },
+    ],
+    demoScript: [
+      {
+        step: "1",
+        name: "Estado base",
+        action: "Abrir web-zabbix.negociocontigo.com y confirmar /health, DB, SLO y matriz.",
+      },
+      {
+        step: "2",
+        name: "Carga visible",
+        action: "Ejecutar Artillery o el botón de carga del portal; revisar rutas, latencia y gráficas.",
+      },
+      {
+        step: "3",
+        name: "Incidente",
+        action: "Crear incidente desde la web para demostrar escritura en MariaDB.",
+      },
+      {
+        step: "4",
+        name: "Caída controlada",
+        action: "Detener web-service y mostrar problema en Zabbix + correo en MailHog.",
+      },
+      {
+        step: "5",
+        name: "Cierre",
+        action: "Restaurar el servicio, ejecutar audit-project.sh y mostrar cumplimiento.",
+      },
     ],
   };
 }
@@ -549,7 +616,7 @@ function summary() {
   const uptimeSeconds = Math.round((Date.now() - startedAt) / 1000);
   return {
     app: "Proyecto 7 Web Service",
-    version: "1.7.0",
+    version: "1.8.0",
     environment: process.env.NODE_ENV || "development",
     status: "operativo",
     uptimeSeconds,
@@ -716,6 +783,11 @@ async function handleApi(req, res, url) {
     return;
   }
 
+  if (pathname === "/api/observability") {
+    json(res, 200, observabilityPlan());
+    return;
+  }
+
   if (pathname === "/api/incidents" && req.method === "GET") {
     if (!dbPool) {
       serviceUnavailable(res, "MariaDB no esta disponible para consultar incidentes.");
@@ -782,10 +854,10 @@ async function handleApi(req, res, url) {
       hosts,
       compliance: complianceSnapshot(),
       recommendations: [
-        "Mantener dashboard en Zabbix para tendencias historicas.",
-        "Ejecutar Artillery antes de la sustentacion para mostrar impacto en metricas.",
-        "Comparar latencia de /health contra eventos de problema y recuperacion.",
-        "Usar /api/incidents para demostrar persistencia en MariaDB durante pruebas de estres.",
+        "Mantener dashboard en Zabbix para tendencias históricas.",
+        "Ejecutar Artillery antes de la sustentación para mostrar impacto en métricas.",
+        "Comparar latencia de /health contra eventos de problema y recuperación.",
+        "Usar /api/incidents para demostrar persistencia en MariaDB durante pruebas de estrés.",
       ],
     });
     return;
