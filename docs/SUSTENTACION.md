@@ -1,44 +1,46 @@
 # Guia de sustentacion - Proyecto 7
 
-Tiempo maximo: 20 minutos.
+Tiempo maximo: 20 minutos. Como son cuatro integrantes, cada uno debe hablar 5 minutos.
 
-## Distribucion sugerida
+La division detallada esta en `docs/GUION_SUSTENTACION_20_MIN.md`.
 
-1. Presentacion del problema - 2 min
-   - Necesidad de observar disponibilidad, recursos y servicios.
-   - Riesgo de fallas sin monitoreo centralizado.
+## Distribucion por integrante
 
-2. Arquitectura - 4 min
+1. Juan Camilo Ballesteros Sierra - 0:00 a 5:00
+   - Problema.
+   - Objetivo.
+   - Arquitectura general.
+   - Docker Compose.
+   - Imagen Zabbix personalizada y volumenes.
+
+2. Luis Felipe Murillo Matallana - 5:00 a 10:00
    - Zabbix Server con PostgreSQL.
    - Zabbix Web para visualizacion.
-   - Cuatro servicios monitoreados: web, base de datos, DNS y FTP.
-   - Agentes Zabbix y checks de servicios.
-   - MailHog como servidor SMTP de pruebas.
+   - Script `scripts/provision_zabbix.py`.
+   - Hosts, grupos, templates, triggers y dashboard.
+   - Backend web y MariaDB.
 
-3. Implementacion Docker - 4 min
-   - Explicar `docker-compose.yml`.
-   - Mostrar la imagen personalizada `proyecto7-zabbix-server:6.0-custom` creada con `docker/zabbix-server/Dockerfile`.
-   - Mostrar los volumenes de configuracion Zabbix montados para servidor y agentes.
-   - Red interna `proyecto7-monitoring`.
-   - Volumen persistente de PostgreSQL.
-   - Variables en `.env`.
-
-4. Demostracion - 7 min
-   - Mostrar hosts y latest data.
-   - Mostrar dashboard o graficas.
-   - Abrir `https://web-zabbix.negociocontigo.com` y crear un incidente demo.
-   - Mostrar `/api/db/status`, `/api/slo`, `/api/incidents` y `/metrics`.
-   - Ejecutar `artillery run tests/artillery-live-demo.yml` con el panel `Load Lab en vivo` abierto.
-   - Mostrar como suben requests, telemetria, cargas y SLO durante la ejecucion.
+3. Juan Sebastian Delgado - 10:00 a 15:00
+   - Hosts monitoreados: web, DB, DNS y FTP.
+   - Agentes Zabbix.
+   - Checks HTTP, MySQL, DNS, FTP y ping.
+   - CPU, memoria, disco y latest data.
    - Mostrar el `Centro de graficas` con CPU, memoria, disco, rutas y cargas recientes.
-   - Mostrar la `Matriz de cumplimiento` para cruzar cada requisito con evidencia.
+
+4. Daniela Castro Quinones - 15:00 a 20:00
+   - Pruebas minimas.
+   - Ejecutar `artillery run tests/artillery-live-demo.yml` con el panel `Load Lab en vivo` abierto.
+   - Simular caida de `web-service`.
    - Mostrar el web scenario `Proyecto 7 - recorrido publico` en Zabbix.
-   - Detener un servicio con `test-failure.ps1`.
    - Ver problema en Zabbix.
    - Ver correo en MailHog.
    - Restaurar servicio y mostrar recuperacion.
+   - Mostrar la `Matriz de cumplimiento` y auditoria.
 
-5. Conclusiones - 3 min
+## Cierre comun
+
+Si queda tiempo, usar los ultimos 30 segundos para cerrar con:
+
    - Zabbix centraliza visibilidad operativa.
    - Triggers permiten reaccionar ante fallas.
    - MailHog valida el flujo de alertas y el canal SMTP real demuestra escalamiento externo.

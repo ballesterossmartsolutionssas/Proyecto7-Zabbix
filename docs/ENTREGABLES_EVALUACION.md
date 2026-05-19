@@ -34,6 +34,17 @@ Integrantes:
 
 ## Paso a paso para sustentar en 20 minutos
 
+Division por integrante:
+
+| Integrante | Tiempo | Responsabilidad |
+|---|---:|---|
+| Juan Camilo Ballesteros Sierra | 0:00 - 5:00 | Problema, objetivo, arquitectura y Docker Compose |
+| Luis Felipe Murillo Matallana | 5:00 - 10:00 | Zabbix Server, base de datos, frontend y aprovisionamiento |
+| Juan Sebastian Delgado | 10:00 - 15:00 | Hosts, agentes, checks, metricas y graficas |
+| Daniela Castro Quinones | 15:00 - 20:00 | Pruebas, Artillery, caida, MailHog, evidencias y cierre |
+
+Guion detallado: `docs/GUION_SUSTENTACION_20_MIN.md`.
+
 1. Abrir el portal publico y mostrar inventario, backend, Load Lab, Centro de graficas y Matriz de cumplimiento.
 2. Abrir Zabbix y mostrar el grupo `Proyecto 7 - Infraestructura Docker`.
 3. Mostrar hosts `web-host`, `db-host`, `dns-host` y `ftp-host` con items de CPU, memoria, disco, ping y servicios.
@@ -76,4 +87,3 @@ Resultado esperado:
 - Auditoria: `0` validaciones fallidas.
 - Artillery smoke: `0` usuarios fallidos.
 - Zabbix: hosts disponibles, triggers configurados y graficas historicas con datos.
-

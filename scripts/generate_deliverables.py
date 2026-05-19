@@ -507,6 +507,7 @@ def zip_delivery(paths):
         ROOT / "docs" / "DEMO_AVANZADA.md",
         ROOT / "docs" / "ENTREGABLES_EVALUACION.md",
         ROOT / "docs" / "MATRIZ_RUBRICA.md",
+        ROOT / "docs" / "GUION_SUSTENTACION_20_MIN.md",
         ROOT / "scripts" / "provision.ps1",
         ROOT / "scripts" / "provision_zabbix.py",
         ROOT / "scripts" / "test-failure.ps1",
