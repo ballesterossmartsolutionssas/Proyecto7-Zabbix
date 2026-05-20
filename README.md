@@ -29,6 +29,11 @@ La matriz contra la rubrica esta documentada en `docs/MATRIZ_RUBRICA.md` y tambi
 
 ## Arquitectura
 
+Diagramas completos para sustentación:
+
+- Arquitectura lógica: `docs/DIAGRAMAS_ARQUITECTURA_DESPLIEGUE.md`
+- Despliegue en VPS: `docs/DIAGRAMAS_ARQUITECTURA_DESPLIEGUE.md`
+
 ```mermaid
 flowchart LR
     subgraph Red["proyecto7-monitoring"]

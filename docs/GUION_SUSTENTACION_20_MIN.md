@@ -21,10 +21,10 @@ Cada uno debe estudiar su bloque, no leer todo literal y cerrar con la frase de 
 
 | Tiempo | Integrante | Diapositivas | Tema |
 |---:|---|---:|---|
-| 0:00 - 5:00 | Luis Felipe Murillo Matallana | 1 a 3 | Portada, problema y objetivo |
-| 5:00 - 10:00 | Juan Sebastián Delgado | 4 a 6 | Arquitectura, inventario e implementación Docker |
-| 10:00 - 15:00 | Daniela Castro Quiñones | 7 a 9 | Dashboard, caída esperada y alertas |
-| 15:00 - 20:00 | Juan Camilo Ballesteros Sierra | 10 a 14 | Carga, resultados, entregables, conclusiones y demo |
+| 0:00 - 5:00 | Luis Felipe Murillo Matallana | 1 a 4 | Portada, problema, alternativas y objetivo |
+| 5:00 - 10:00 | Juan Sebastián Delgado | 5 a 8 | Arquitectura lógica, despliegue en VPS, inventario e implementación Docker |
+| 10:00 - 15:00 | Daniela Castro Quiñones | 9 a 12 | Dashboard, métricas, caída esperada y alertas |
+| 15:00 - 20:00 | Juan Camilo Ballesteros Sierra | 13 a 18 | Carga, resultados, discusión, entregables, demo y cierre |
 
 ## 0:00 - 5:00 Luis Felipe
 
@@ -53,19 +53,21 @@ Frase de transición:
 
 Mensaje central: la solución cumple la infraestructura mínima exigida y queda totalmente empaquetada con Docker Compose.
 
-Diapositivas: 4, 5 y 6.
+Diapositivas: 5, 6, 7 y 8.
 
 Guion sugerido:
 
-1. "La arquitectura está compuesta por Zabbix Server, PostgreSQL, Zabbix Web, MailHog y cuatro servicios monitoreados: web, base de datos, DNS y FTP."
-2. "Cada servicio tiene su agente Zabbix correspondiente. Eso cubre lo básico: CPU, memoria y disco. Pero además se agregaron checks de servicio y endpoints reales para validar comportamiento, no solo recursos."
-3. "El inventario en Zabbix queda así: `web-host` para HTTP, `db-host` para MariaDB, `dns-host` para CoreDNS y `ftp-host` para VSFTPD."
-4. "Todo está definido en `docker-compose.yml`. Para la VPS usamos `docker-compose.vps.yml`, que deja internos los puertos sensibles y publica solo lo necesario mediante Caddy con HTTPS."
-5. "También se cumple el requisito de imagen personalizada, porque el servidor Zabbix se construye desde `docker/zabbix-server/Dockerfile`, y las configuraciones se montan como volúmenes."
+1. "Primero separo dos ideas: arquitectura y despliegue. La arquitectura muestra qué componentes existen; el despliegue muestra dónde corren y cómo se publican."
+2. "La arquitectura lógica tiene Zabbix Server, PostgreSQL, Zabbix Web, MailHog, el portal web con backend, MariaDB de demo, cuatro servicios monitoreados y cuatro agentes."
+3. "El despliegue real está en una VPS Ubuntu de Hostinger. Caddy recibe los subdominios con HTTPS y Docker Compose mantiene los servicios internos en la red `proyecto7-monitoring`."
+4. "No exponemos puertos internos directamente a Internet. Solo se publican tres entradas: portal web, Zabbix y MailHog; el resto queda privado dentro de Compose."
+5. "El inventario en Zabbix queda así: `web-host` para HTTP, `db-host` para MariaDB, `dns-host` para CoreDNS y `ftp-host` para VSFTPD."
+6. "También se cumple el requisito de imagen personalizada, porque el servidor Zabbix se construye desde `docker/zabbix-server/Dockerfile`, y las configuraciones se montan como volúmenes."
 
 Pantallas que puede mostrar:
 
-- Diapositivas 4 a 6.
+- Diapositivas 5 a 8.
+- `docs/DIAGRAMAS_ARQUITECTURA_DESPLIEGUE.md`.
 - `docker-compose.yml`.
 - `docker-compose.vps.yml`.
 - `docker/zabbix-server/Dockerfile`.

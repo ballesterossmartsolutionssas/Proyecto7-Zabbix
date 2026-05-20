@@ -6,8 +6,8 @@ Equipo, la sustentación dura máximo 20 minutos. La idea principal es que no se
 
 | Tiempo | Integrante | Qué dice |
 |---:|---|---|
-| 0:00 - 5:00 | Luis Felipe | Problema, objetivo, alternativas y entregables. |
-| 5:00 - 10:00 | Juan Sebastián | Arquitectura Docker, servicios monitoreados e inventario. |
+| 0:00 - 5:00 | Luis Felipe | Problema, alternativas, decisión por Zabbix y objetivo. |
+| 5:00 - 10:00 | Juan Sebastián | Arquitectura lógica, despliegue en VPS, servicios monitoreados e inventario. |
 | 10:00 - 15:00 | Daniela | Zabbix configurado, Latest data, dashboard y alertas con MailHog. |
 | 15:00 - 20:00 | Juan Camilo | Demo técnica: portal, Artillery, caída, MailHog, auditoría y cierre. |
 
@@ -19,9 +19,11 @@ Luis Felipe:
 - Remarca que el valor extra es una app real para probar carga, SLO e incidentes.
 
 Juan Sebastián:
+- Muestra las diapositivas de arquitectura lógica y despliegue en VPS.
 - Muestra `docker-compose.yml`, `docker-compose.vps.yml` y el Dockerfile de Zabbix.
 - Explica los 4 hosts: web, DB, DNS y FTP.
 - Dice que cada host tiene agente y checks de disponibilidad.
+- Frase clave: "No exponemos los puertos internos; Caddy publica HTTPS y Docker Compose aísla la red de monitoreo."
 
 Daniela:
 - Entra a Zabbix.
