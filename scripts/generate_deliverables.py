@@ -794,22 +794,42 @@ def create_pptx():
     # 15 alternatives
     s = prs.slides.add_slide(blank)
     bg(s)
-    title(s, "alternativas", "Zabbix se eligió por equilibrio entre control, alertas y despliegue local.", 15)
-    alternatives = [
-        ("Nagios Core", "Checks maduros y muchos plugins.", "UI y dashboards limitados; menor automatización moderna.", AMBER),
-        ("Prometheus + Grafana", "Métricas modernas y visualización fuerte.", "Requiere Alertmanager, exporters y más integración.", CYAN),
-        ("Datadog", "Suite SaaS completa con APM y logs.", "Costo, dependencia externa y datos fuera del laboratorio.", RED),
-        ("Zabbix 6.x", "Agentes, API, triggers, dashboards, histórico y correo integrados.", "Más configuración inicial, pero reproducible con scripts.", TEAL),
+    title(s, "alternativas", "Zabbix ganó la matriz ponderada.", 15)
+    text(s, "Escala 1-5. Se priorizó despliegue local, Docker, alertas, API y ajuste académico.", 0.85, 1.48, 8.4, 0.22, 9.5, MUTED, True)
+
+    x0 = 0.82
+    y0 = 1.88
+    cols = [2.55, 0.72, 0.78, 0.92, 0.82, 0.82]
+    headers = ["Criterio", "Peso", "Nagios", "Prom.", "Datadog", "Zabbix"]
+    xs = [x0]
+    for w in cols[:-1]:
+        xs.append(xs[-1] + w)
+    for x, w, h in zip(xs, cols, headers):
+        rect(s, x, y0, w, 0.36, INK)
+        text(s, h, x + 0.07, y0 + 0.11, w - 0.14, 0.12, 7.4, WHITE, True, PP_ALIGN.CENTER)
+
+    criteria = [
+        ("Costo y despliegue local", "20%", "4", "5", "2", "5"),
+        ("Docker Compose / reproducible", "20%", "3", "4", "2", "5"),
+        ("Dashboards + alertas", "20%", "3", "4", "5", "5"),
+        ("API / aprovisionamiento", "15%", "2", "3", "4", "5"),
+        ("Histórico y servicios", "15%", "3", "5", "5", "4"),
+        ("Ajuste académico", "10%", "4", "3", "2", "5"),
+        ("Puntaje ponderado", "100%", "3.2", "4.0", "3.4", "4.8"),
     ]
-    for i, (name, strength, limit, accent) in enumerate(alternatives):
-        y = 1.72 + i * 1.05
-        rect(s, 0.82, y, 2.35, 0.72, WHITE, LINE, True)
-        text(s, name, 1.02, y + 0.16, 1.92, 0.23, 12, accent, True)
-        rect(s, 3.38, y, 3.9, 0.72, (245, 248, 250), LINE, True)
-        text(s, strength, 3.58, y + 0.14, 3.45, 0.28, 10.5, INK)
-        rect(s, 7.55, y, 4.55, 0.72, (250, 247, 244), LINE, True)
-        text(s, limit, 7.75, y + 0.14, 4.05, 0.28, 10.5, INK)
-    label_box(s, "Decisión", "Zabbix permite cumplir el enunciado sin SaaS pago: monitoreo de hosts, servicios, triggers, dashboards, histórico, alertas y API en Docker Compose.", 0.85, 6.03, 11.25, 0.78, TEAL)
+    for r, row in enumerate(criteria):
+        y = y0 + 0.42 + r * 0.4
+        for c, value in enumerate(row):
+            fill = (235, 253, 246) if r == len(criteria) - 1 else (WHITE if r % 2 == 0 else (245, 248, 250))
+            rect(s, xs[c], y, cols[c], 0.38, fill, LINE)
+            color = TEAL if c == 5 else INK
+            bold = c in (0, 5) or r == len(criteria) - 1
+            align = PP_ALIGN.LEFT if c == 0 else PP_ALIGN.CENTER
+            text(s, value, xs[c] + 0.07, y + 0.11, cols[c] - 0.14, 0.12, 7.4, color, bold, align)
+
+    label_box(s, "Por qué Zabbix", "Integra agentes, frontend, histórico, triggers, correo, web scenarios y API sin SaaS pago.", 8.55, 1.92, 3.65, 1.08, TEAL)
+    label_box(s, "Por qué no Prometheus", "Es fuerte en métricas, pero exige Alertmanager, Grafana y exporters extra para igualar la demo.", 8.55, 3.28, 3.65, 1.08, CYAN)
+    label_box(s, "Decisión final", "Fue la opción más completa para Docker Compose, cuatro servicios, MailHog y aprovisionamiento reproducible.", 8.55, 4.64, 3.65, 1.16, LIME)
     footer(s, 15)
 
     # 16 discussion
