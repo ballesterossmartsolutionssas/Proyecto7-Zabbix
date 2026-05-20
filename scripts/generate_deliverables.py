@@ -844,6 +844,46 @@ def create_pptx():
     text(s, "Entregables: informe IEEE, presentación, repositorio GitHub, README, scripts de aprovisionamiento, Docker Compose, evidencias y demo pública HTTPS.", 0.95, 5.82, 10.9, 0.5, 17, WHITE, True)
     footer(s, 17, True)
 
+    # Reorder the narrative so the deck follows the report structure:
+    # problema/contexto -> alternativas -> objetivo/diseño -> implementación
+    # -> pruebas -> discusión/conclusión -> entregables/demo -> referencias.
+    logical_order = [0, 1, 14, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 15, 12, 13, 16]
+    slide_ids = list(prs.slides._sldIdLst)
+    for slide_id in slide_ids:
+        prs.slides._sldIdLst.remove(slide_id)
+    for idx in logical_order:
+        prs.slides._sldIdLst.append(slide_ids[idx])
+
+    dark_slides = {1, 8, 11, 16, 17}
+    for new_num, slide in enumerate(prs.slides, start=1):
+        dark = new_num in dark_slides
+        for shape in slide.shapes:
+            if not getattr(shape, "has_text_frame", False):
+                continue
+            value = shape.text.strip()
+            if value.endswith(f"/{total_slides}") and len(value) <= 6:
+                tf = shape.text_frame
+                tf.clear()
+                tf.margin_left = tf.margin_right = tf.margin_top = tf.margin_bottom = 0
+                p = tf.paragraphs[0]
+                p.alignment = PP_ALIGN.RIGHT
+                r = p.add_run()
+                r.text = f"{new_num:02d}/{total_slides}"
+                r.font.name = "Aptos"
+                r.font.size = PptPt(7.5)
+                r.font.color.rgb = rgb((142, 159, 170) if dark else MUTED)
+            elif value in {f"{i:02d}" for i in range(1, total_slides + 1)} and shape.top < PptInches(1) and shape.left < PptInches(1):
+                tf = shape.text_frame
+                tf.clear()
+                tf.margin_left = tf.margin_right = tf.margin_top = tf.margin_bottom = 0
+                p = tf.paragraphs[0]
+                r = p.add_run()
+                r.text = f"{new_num:02d}"
+                r.font.name = "Aptos"
+                r.font.size = PptPt(8)
+                r.font.bold = True
+                r.font.color.rgb = rgb(TEAL if dark else INK)
+
     out = OUT / "Presentacion_Proyecto7_Zabbix.pptx"
     prs.save(out)
     return out
